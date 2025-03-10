@@ -30,18 +30,31 @@ export default function EventsPage() {
   const categories = ["All", "Academic", "Social", "Sports", "Arts", "Career"];
 
   useEffect(() => {
-    setIsLoading(true);
-    fetch("/api/events")
-      .then((res) => res.json())
-      .then((data) => {
+    const controller = new AbortController();
+    const fetchEvents = async () => {
+      setIsLoading(true);
+      try {
+        const res = await fetch("/api/events", { signal: controller.signal });
+
+        if (!res.ok) {
+          throw new Error(`HTTP error! Status: ${res.status}`);
+        }
+
+        const data = await res.json();
         setEvents(data);
         setFilteredEvents(data);
+      } catch (error) {
+        if (error instanceof Error && error.name !== "AbortError") {
+          console.error("Error fetching events:", error);
+        }
+      } finally {
         setIsLoading(false);
-      })
-      .catch(error => {
-        console.error("Error fetching events:", error);
-        setIsLoading(false);
-      });
+      }
+    };
+
+    fetchEvents();
+
+    return () => controller.abort(); // Cleanup to prevent memory leaks
   }, []);
 
   useEffect(() => {
