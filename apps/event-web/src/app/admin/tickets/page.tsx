@@ -22,15 +22,15 @@ import { Search, Filter, Download, BarChart2, Printer, Calendar, Users, Tag, Ale
     venue: ""
   });
   
-  const [editingTicket, setEditingTicket] = useState(null);
+  const [editingTicket, setEditingTicket] = useState<{ id: number; event: string; price: number; status: string; quantity: number; sold: number; date: string; category: string; venue: string } | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("All");
   const [filterStatus, setFilterStatus] = useState("All");
   const [showStats, setShowStats] = useState(false);
-  const [batchActionSelected, setBatchActionSelected] = useState([]);
+  const [batchActionSelected, setBatchActionSelected] = useState<number[]>([]);
   const [showDiscountModal, setShowDiscountModal] = useState(false);
   const [discountAmount, setDiscountAmount] = useState(0);
-  const [sortField, setSortField] = useState("id");
+  const [sortField, setSortField] = useState<keyof typeof tickets[0]>("id");
   const [sortDirection, setSortDirection] = useState("asc");
 
   // Create categories from existing tickets
@@ -39,7 +39,7 @@ import { Search, Filter, Download, BarChart2, Printer, Calendar, Users, Tag, Ale
   const venues = [...new Set(tickets.map(ticket => ticket.venue))];
 
   // Handle Input Change
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setNewTicket({ ...newTicket, [name]: value });
   };
@@ -47,7 +47,7 @@ import { Search, Filter, Download, BarChart2, Printer, Calendar, Users, Tag, Ale
   // Update status based on quantity and sold
   useEffect(() => {
     if (newTicket.quantity && newTicket.sold) {
-      const remaining = parseInt(newTicket.quantity) - parseInt(newTicket.sold);
+      const remaining = parseInt(newTicket.quantity.toString()) - parseInt(newTicket.sold.toString());
       if (remaining <= 0) {
         setNewTicket({ ...newTicket, status: "Sold Out" });
       } else if (remaining <= parseInt(newTicket.quantity) * 0.1) {
@@ -61,7 +61,7 @@ import { Search, Filter, Download, BarChart2, Printer, Calendar, Users, Tag, Ale
   // Add New Ticket
   const addTicket = () => {
     if (newTicket.event && newTicket.price && newTicket.quantity && newTicket.date && newTicket.venue) {
-      setTickets([...tickets, { id: Date.now(), ...newTicket }]);
+      setTickets([...tickets, { id: Date.now(), ...newTicket, price: Number(newTicket.price), quantity: Number(newTicket.quantity) }]);
       setNewTicket({ 
         event: "", 
         price: "", 
@@ -78,13 +78,13 @@ import { Search, Filter, Download, BarChart2, Printer, Calendar, Users, Tag, Ale
   };
 
   // Edit Ticket
-  const startEdit = (ticket) => {
+  const startEdit = (ticket: { id: number; event: string; price: number; status: string; quantity: number; sold: number; date: string; category: string; venue: string }) => {
     setEditingTicket(ticket);
     setNewTicket({ 
       event: ticket.event, 
-      price: ticket.price, 
+      price: ticket.price.toString(),
       status: ticket.status,
-      quantity: ticket.quantity,
+      quantity: ticket.quantity.toString(),
       sold: ticket.sold,
       date: ticket.date,
       category: ticket.category,
@@ -93,9 +93,11 @@ import { Search, Filter, Download, BarChart2, Printer, Calendar, Users, Tag, Ale
   };
 
   const saveEdit = () => {
-    setTickets(
-      tickets.map((t) => (t.id === editingTicket.id ? { ...editingTicket, ...newTicket } : t))
-    );
+    if (editingTicket) {
+      setTickets(
+        tickets.map((t) => (t.id === editingTicket.id ? { ...t, ...newTicket, id: t.id, price: Number(newTicket.price), quantity: Number(newTicket.quantity) } : t))
+      );
+    }
     setEditingTicket(null);
     setNewTicket({ 
       event: "", 
@@ -110,14 +112,14 @@ import { Search, Filter, Download, BarChart2, Printer, Calendar, Users, Tag, Ale
   };
 
   // Delete Ticket
-  const deleteTicket = (id) => {
+  const deleteTicket = (id: number) => {
     if (confirm("Are you sure you want to delete this ticket?")) {
       setTickets(tickets.filter((ticket) => ticket.id !== id));
     }
   };
 
   // Toggle selection for batch actions
-  const toggleSelection = (id) => {
+  const toggleSelection = (id: number) => {
     if (batchActionSelected.includes(id)) {
       setBatchActionSelected(batchActionSelected.filter(ticketId => ticketId !== id));
     } else {
@@ -171,11 +173,11 @@ import { Search, Filter, Download, BarChart2, Printer, Calendar, Users, Tag, Ale
   };
 
   // Sort tickets
-  const handleSort = (field) => {
+  const handleSort = (field: string) => {
     if (sortField === field) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
-      setSortField(field);
+      setSortField(field as keyof typeof tickets[0]);
       setSortDirection("asc");
     }
   };
@@ -198,10 +200,10 @@ import { Search, Filter, Download, BarChart2, Printer, Calendar, Users, Tag, Ale
 
   // Calculate statistics
   const stats = {
-    totalTickets: tickets.reduce((sum, t) => sum + parseInt(t.quantity || 0), 0),
-    totalSold: tickets.reduce((sum, t) => sum + parseInt(t.sold || 0), 0),
-    totalRevenue: tickets.reduce((sum, t) => sum + (parseInt(t.price || 0) * parseInt(t.sold || 0)), 0),
-    avgPrice: tickets.length ? (tickets.reduce((sum, t) => sum + parseInt(t.price || 0), 0) / tickets.length).toFixed(2) : 0,
+    totalTickets: tickets.reduce((sum, t) => sum + parseInt(t.quantity.toString() || "0"), 0),
+    totalSold: tickets.reduce((sum, t) => sum + parseInt(t.sold.toString() || "0"), 0),
+    totalRevenue: tickets.reduce((sum, t) => sum + (parseInt(t.price.toString() || "0") * parseInt(t.sold.toString() || "0")), 0),
+    avgPrice: tickets.length ? (tickets.reduce((sum, t) => sum + parseInt(t.price.toString() || "0"), 0) / tickets.length).toFixed(2) : 0,
     mostPopular: tickets.length ? tickets.reduce((prev, current) => 
       (prev.sold / prev.quantity > current.sold / current.quantity) ? prev : current
     ).event : "N/A"
@@ -210,7 +212,7 @@ import { Search, Filter, Download, BarChart2, Printer, Calendar, Users, Tag, Ale
   // Low stock notification
   const lowStockTickets = tickets.filter(ticket => 
     ticket.status !== "Sold Out" && 
-    (parseInt(ticket.quantity) - parseInt(ticket.sold)) <= 10
+    (parseInt(ticket.quantity.toString()) - parseInt(ticket.sold.toString())) <= 10
   );
 
   return (
@@ -288,7 +290,7 @@ import { Search, Filter, Download, BarChart2, Printer, Calendar, Users, Tag, Ale
                   <ul className="mt-1 text-sm text-yellow-700 dark:text-yellow-300">
                     {lowStockTickets.map(ticket => (
                       <li key={`alert-${ticket.id}`}>
-                        {ticket.event}: Only {parseInt(ticket.quantity) - parseInt(ticket.sold)} tickets left
+                        {ticket.event}: Only {parseInt(ticket.quantity.toString()) - parseInt(ticket.sold.toString())} tickets left
                       </li>
                     ))}
                   </ul>
@@ -353,7 +355,7 @@ import { Search, Filter, Download, BarChart2, Printer, Calendar, Users, Tag, Ale
                 name="event"
                 placeholder="Event Name*"
                 value={newTicket.event}
-                onChange={handleInputChange}
+                onChange={(e) => setNewTicket({ ...newTicket, category: e.target.value })}
                 className="p-2 border rounded-lg"
                 required
               />
@@ -365,7 +367,7 @@ import { Search, Filter, Download, BarChart2, Printer, Calendar, Users, Tag, Ale
                   name="price"
                   placeholder="Ticket Price*"
                   value={newTicket.price}
-                  onChange={handleInputChange}
+                  onChange={(e) => setNewTicket({ ...newTicket, category: e.target.value })}
                   className="w-full p-2 border rounded-lg"
                   required
                 />
@@ -374,7 +376,7 @@ import { Search, Filter, Download, BarChart2, Printer, Calendar, Users, Tag, Ale
               <select
                 name="category"
                 value={newTicket.category}
-                onChange={handleInputChange}
+                onChange={(e) => setNewTicket({ ...newTicket, category: e.target.value })}
                 className="p-2 border rounded-lg dark:bg-gray-800"
               >
                 {categories.filter(cat => cat !== "All").map(cat => (
@@ -393,7 +395,7 @@ import { Search, Filter, Download, BarChart2, Printer, Calendar, Users, Tag, Ale
                   name="date"
                   placeholder="Event Date*"
                   value={newTicket.date}
-                  onChange={handleInputChange}
+                  onChange={(e) => setNewTicket({ ...newTicket, [e.target.name]: e.target.value })}
                   className="w-full p-2 border rounded-lg"
                   required
                 />
@@ -406,7 +408,7 @@ import { Search, Filter, Download, BarChart2, Printer, Calendar, Users, Tag, Ale
                   name="quantity"
                   placeholder="Total Quantity*"
                   value={newTicket.quantity}
-                  onChange={handleInputChange}
+                  onChange={(e) => setNewTicket({ ...newTicket, category: e.target.value })}
                   className="w-full p-2 border rounded-lg"
                   required
                 />
@@ -420,7 +422,7 @@ import { Search, Filter, Download, BarChart2, Printer, Calendar, Users, Tag, Ale
                     name="sold"
                     placeholder="Tickets Sold"
                     value={newTicket.sold}
-                    onChange={handleInputChange}
+                    onChange={(e) => setNewTicket({ ...newTicket, category: e.target.value })}
                     className="w-full p-2 border rounded-lg"
                   />
                 </div>
@@ -431,7 +433,7 @@ import { Search, Filter, Download, BarChart2, Printer, Calendar, Users, Tag, Ale
                 name="venue"
                 placeholder="Venue*"
                 value={newTicket.venue}
-                onChange={handleInputChange}
+                onChange={(e) => setNewTicket({ ...newTicket, [e.target.name]: e.target.value })}
                 className="p-2 border rounded-lg"
                 required
               />
@@ -439,9 +441,9 @@ import { Search, Filter, Download, BarChart2, Printer, Calendar, Users, Tag, Ale
               <select
                 name="status"
                 value={newTicket.status}
-                onChange={handleInputChange}
+                onChange={(e) => setNewTicket({ ...newTicket, status: e.target.value })}
                 className="p-2 border rounded-lg dark:bg-gray-800"
-                disabled={editingTicket && newTicket.quantity && newTicket.sold}
+                disabled={!!editingTicket && newTicket.quantity !== "" && newTicket.quantity !== null && newTicket.sold !== null}
               >
                 <option value="Available">Available</option>
                 <option value="Limited">Limited</option>
@@ -644,7 +646,7 @@ import { Search, Filter, Download, BarChart2, Printer, Calendar, Users, Tag, Ale
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="10" className="px-3 py-4 text-center text-gray-500 dark:text-gray-400">
+                      <td colSpan={10} className="px-3 py-4 text-center text-gray-500 dark:text-gray-400">
                         No tickets found. Adjust your search or add new tickets.
                       </td>
                     </tr>
@@ -668,7 +670,7 @@ import { Search, Filter, Download, BarChart2, Printer, Calendar, Users, Tag, Ale
               type="number"
               placeholder="Discount Amount"
               value={discountAmount}
-              onChange={(e) => setDiscountAmount(e.target.value)}
+              onChange={(e) => setDiscountAmount(Number(e.target.value))}
               className="p-2 border rounded-lg w-full"
             />
             <div className="mt-4 flex justify-end">

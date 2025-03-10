@@ -1,6 +1,17 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 
+type Member = {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  department: string;
+  joinDate: string;
+  eventsAttended: number;
+  status: string;
+};
+
 const MemberAdminPage = () => {
   const [members, setMembers] = useState([
     { id: 1, name: "Piyush Mehta", email: "piyush@example.com", role: "Organizer", department: "Computer Science", joinDate: "2024-01-15", eventsAttended: 5, status: "Active" },
@@ -22,10 +33,10 @@ const MemberAdminPage = () => {
   const [filterDepartment, setFilterDepartment] = useState("All");
   const [sortField, setSortField] = useState("name");
   const [sortDirection, setSortDirection] = useState("asc");
-  const [selectedMembers, setSelectedMembers] = useState([]);
-  const [isEditing, setIsEditing] = useState(null);
-  const [editFormData, setEditFormData] = useState({});
-  const [notification, setNotification] = useState(null);
+  const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
+  const [isEditing, setIsEditing] = useState<number | null>(null);
+  const [editFormData, setEditFormData] = useState<Partial<Member>>({});
+  const [notification, setNotification] = useState<Notification | null>(null);
 
   // Get current date in YYYY-MM-DD format
   function getCurrentDate() {
@@ -34,12 +45,12 @@ const MemberAdminPage = () => {
   }
 
   // Handle input change for new member form
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setNewMember({ ...newMember, [e.target.name]: e.target.value });
   };
 
   // Handle input change for edit form
-  const handleEditChange = (e) => {
+  const handleEditChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setEditFormData({ ...editFormData, [e.target.name]: e.target.value });
   };
 
@@ -65,7 +76,7 @@ const MemberAdminPage = () => {
   };
 
   // Remove member
-  const removeMember = (id) => {
+  const removeMember = (id: number) => {
     setMembers(members.filter(member => member.id !== id));
     setSelectedMembers(selectedMembers.filter(memberId => memberId !== id));
     showNotification("Member removed successfully!");
@@ -83,7 +94,7 @@ const MemberAdminPage = () => {
   };
 
   // Handle checkbox selection
-  const handleSelectMember = (id) => {
+  const handleSelectMember = (id: number) => {
     if (selectedMembers.includes(id)) {
       setSelectedMembers(selectedMembers.filter(memberId => memberId !== id));
     } else {
@@ -101,7 +112,7 @@ const MemberAdminPage = () => {
   };
 
   // Start editing a member
-  const startEditing = (member) => {
+  const startEditing = (member: Member) => {
     setIsEditing(member.id);
     setEditFormData({ ...member });
   };
@@ -116,7 +127,7 @@ const MemberAdminPage = () => {
   const saveEdit = () => {
     if (editFormData.name && editFormData.email && editFormData.department) {
       setMembers(members.map(member => 
-        member.id === isEditing ? { ...editFormData } : member
+        member.id === isEditing ? { ...member, ...editFormData } : member
       ));
       setIsEditing(null);
       setEditFormData({});
@@ -127,7 +138,7 @@ const MemberAdminPage = () => {
   };
 
   // Change member status
-  const changeStatus = (id, newStatus) => {
+  const changeStatus = (id: number, newStatus: string) => {
     setMembers(members.map(member => 
       member.id === id ? { ...member, status: newStatus } : member
     ));
@@ -135,13 +146,18 @@ const MemberAdminPage = () => {
   };
 
   // Show notification
-  const showNotification = (message, type = "success") => {
+  interface Notification {
+    message: string;
+    type: "success" | "error";
+  }
+
+  const showNotification = (message: string, type: "success" | "error" = "success"): void => {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), 3000);
   };
 
   // Sort members
-  const handleSort = (field) => {
+  const handleSort = (field: keyof Member) => {
     if (sortField === field) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
@@ -151,14 +167,25 @@ const MemberAdminPage = () => {
   };
 
   // Import members from CSV
-  const handleImport = (event) => {
-    const file = event.target.files[0];
+  interface CSVMember {
+      id: number;
+      name: string;
+      email: string;
+      role: string;
+      department: string;
+      joinDate: string;
+      eventsAttended: number;
+      status: string;
+  }
+
+  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (e) => {
-        const content = e.target.result;
+      reader.onload = (e: ProgressEvent<FileReader>) => {
+        const content = e.target?.result as string;
         const lines = content.split('\n');
-        const newMembers = [];
+        const newMembers: CSVMember[] = [];
         
         // Skip header row
         for (let i = 1; i < lines.length; i++) {
@@ -221,8 +248,8 @@ const MemberAdminPage = () => {
 
   // Sort filtered members
   const sortedMembers = [...filteredMembers].sort((a, b) => {
-    if (a[sortField] < b[sortField]) return sortDirection === "asc" ? -1 : 1;
-    if (a[sortField] > b[sortField]) return sortDirection === "asc" ? 1 : -1;
+    if (a[sortField as keyof Member] < b[sortField as keyof Member]) return sortDirection === "asc" ? -1 : 1;
+    if (a[sortField as keyof Member] > b[sortField as keyof Member]) return sortDirection === "asc" ? 1 : -1;
     return 0;
   });
 

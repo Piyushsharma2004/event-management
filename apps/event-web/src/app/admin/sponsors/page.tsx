@@ -10,7 +10,7 @@ function SponsorsAdminPage() {
     { id: 3, name: "Microsoft", category: "Platinum", logo: "https://via.placeholder.com/50", contribution: 450000, contactPerson: "Robert Johnson", email: "robert@microsoft.com", phone: "555-123-4567", events: ["Code Jam", "Tech Talks"], status: "Pending", dateAdded: "2025-02-28" },
   ]);
   
-  const [newSponsor, setNewSponsor] = useState({
+  const [newSponsor, setNewSponsor] = useState<NewSponsor>({
     name: "",
     category: "Gold",
     logo: "",
@@ -22,7 +22,7 @@ function SponsorsAdminPage() {
     status: "Pending"
   });
   
-  const [editingSponsor, setEditingSponsor] = useState(null);
+  const [editingSponsor, setEditingSponsor] = useState<Sponsor | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("All");
   const [filterStatus, setFilterStatus] = useState("All");
@@ -30,7 +30,7 @@ function SponsorsAdminPage() {
   const [notificationMessage, setNotificationMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeSponsorDetails, setActiveSponsorDetails] = useState(null);
+  const [activeSponsorDetails, setActiveSponsorDetails] = useState<Sponsor | null>(null);
   const [selectedEvent, setSelectedEvent] = useState("");
   const [collegeEvents, setCollegeEvents] = useState([
     "Tech Fest 2025", 
@@ -56,18 +56,18 @@ function SponsorsAdminPage() {
 
   const calculateStats = () => {
     const totalSponsors = sponsors.length;
-    const totalContribution = sponsors.reduce((sum, sponsor) => sum + (parseInt(sponsor.contribution) || 0), 0);
+    const totalContribution = sponsors.reduce((sum, sponsor) => sum + (Number(sponsor.contribution) || 0), 0);
     
-    const categoryBreakdown = { Gold: 0, Silver: 0, Platinum: 0 };
-    const statusBreakdown = { Active: 0, Pending: 0, Inactive: 0 };
+    const categoryBreakdown: { Gold: number; Silver: number; Platinum: number } = { Gold: 0, Silver: 0, Platinum: 0 };
+    const statusBreakdown: { Active: number; Pending: number; Inactive: number } = { Active: 0, Pending: 0, Inactive: 0 };
     
     sponsors.forEach(sponsor => {
-      if (categoryBreakdown[sponsor.category] !== undefined) {
-        categoryBreakdown[sponsor.category]++;
+      if (categoryBreakdown[sponsor.category as keyof typeof categoryBreakdown] !== undefined) {
+        categoryBreakdown[sponsor.category as keyof typeof categoryBreakdown]++;
       }
       
-      if (statusBreakdown[sponsor.status] !== undefined) {
-        statusBreakdown[sponsor.status]++;
+      if (statusBreakdown[sponsor.status as keyof typeof statusBreakdown] !== undefined) {
+        statusBreakdown[sponsor.status as keyof typeof statusBreakdown]++;
       }
     });
     
@@ -80,7 +80,7 @@ function SponsorsAdminPage() {
   };
 
   // Handle Input Change
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setNewSponsor({ ...newSponsor, [name]: value });
   };
@@ -92,6 +92,7 @@ function SponsorsAdminPage() {
       const newSponsorEntry = { 
         id: Date.now(), 
         ...newSponsor, 
+        contribution: Number(newSponsor.contribution),
         dateAdded: today,
         events: selectedEvent ? [selectedEvent] : []
       };
@@ -118,16 +119,43 @@ function SponsorsAdminPage() {
   };
 
   // Edit Sponsor
-  const startEdit = (sponsor) => {
+  interface Sponsor {
+    id: number;
+    name: string;
+    category: string;
+    logo: string;
+    contribution: number;
+    contactPerson: string;
+    email: string;
+    phone: string;
+    events: string[];
+    status: string;
+    dateAdded: string;
+  }
+
+  interface NewSponsor {
+    name: string;
+    category: string;
+    logo: string;
+    contribution: string;
+    contactPerson: string;
+    email: string;
+    phone: string;
+    events: string[];
+    status: string;
+  }
+
+  const startEdit = (sponsor: Sponsor) => {
     setEditingSponsor(sponsor);
     setNewSponsor({ 
       name: sponsor.name, 
       category: sponsor.category, 
       logo: sponsor.logo,
-      contribution: sponsor.contribution,
+      contribution: sponsor.contribution.toString(),
       contactPerson: sponsor.contactPerson,
       email: sponsor.email,
       phone: sponsor.phone,
+      events: sponsor.events,
       status: sponsor.status
     });
     setSelectedEvent(sponsor.events && sponsor.events.length > 0 ? sponsor.events[0] : "");
@@ -136,7 +164,7 @@ function SponsorsAdminPage() {
 
   const saveEdit = () => {
     const updatedSponsors = sponsors.map((s) => {
-      if (s.id === editingSponsor.id) {
+      if (editingSponsor && s.id === editingSponsor.id) {
         const updatedEvents = selectedEvent 
           ? [...(s.events || []).filter(event => event !== selectedEvent), selectedEvent]
           : s.events;
@@ -144,6 +172,7 @@ function SponsorsAdminPage() {
         return { 
           ...s, 
           ...newSponsor, 
+          contribution: Number(newSponsor.contribution),
           events: updatedEvents
         };
       }
@@ -170,13 +199,13 @@ function SponsorsAdminPage() {
   };
 
   // Delete Sponsor
-  const deleteSponsor = (id) => {
+  const deleteSponsor = (id: number) => {
     setSponsors(sponsors.filter((sponsor) => sponsor.id !== id));
     showNotificationMessage("Sponsor deleted successfully!", true);
   };
 
   // View Sponsor Details
-  const viewSponsorDetails = (sponsor) => {
+  const viewSponsorDetails = (sponsor: Sponsor) => {
     setActiveSponsorDetails(sponsor);
   };
 
@@ -193,7 +222,12 @@ function SponsorsAdminPage() {
   });
 
   // Show notification
-  const showNotificationMessage = (message, success) => {
+  interface NotificationMessage {
+    message: string;
+    success: boolean;
+  }
+
+  const showNotificationMessage = (message: string, success: boolean): void => {
     setNotificationMessage(message);
     setIsSuccess(success);
     setShowNotification(true);
@@ -235,7 +269,7 @@ function SponsorsAdminPage() {
   };
 
   // Change sponsor status
-  const changeStatus = (id, newStatus) => {
+  const changeStatus = (id: number, newStatus: string) => {
     setSponsors(sponsors.map(sponsor => 
       sponsor.id === id ? {...sponsor, status: newStatus} : sponsor
     ));
@@ -373,7 +407,7 @@ function SponsorsAdminPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                      ₹{parseInt(sponsor.contribution || 0).toLocaleString()}
+                      ₹{parseInt(sponsor.contribution.toString() || "0").toLocaleString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900 dark:text-white">{sponsor.contactPerson}</div>
@@ -413,7 +447,7 @@ function SponsorsAdminPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="6" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                  <td colSpan={6} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
                     No sponsors found matching your search criteria.
                   </td>
                 </tr>
@@ -462,7 +496,7 @@ function SponsorsAdminPage() {
                     name="name"
                     placeholder="Company Name"
                     value={newSponsor.name}
-                    onChange={handleInputChange}
+                    onChange={(e) => setNewSponsor({ ...newSponsor, category: e.target.value })}
                     className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                     required
                   />
@@ -475,7 +509,7 @@ function SponsorsAdminPage() {
                   <select
                     name="category"
                     value={newSponsor.category}
-                    onChange={handleInputChange}
+                    onChange={(e) => setNewSponsor({ ...newSponsor, category: e.target.value })}
                     className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                   >
                     <option value="Platinum">Platinum</option>
@@ -493,7 +527,7 @@ function SponsorsAdminPage() {
                     name="logo"
                     placeholder="https://example.com/logo.png"
                     value={newSponsor.logo}
-                    onChange={handleInputChange}
+                    onChange={(e) => setNewSponsor({ ...newSponsor, category: e.target.value })}
                     className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                     required
                   />
@@ -508,7 +542,7 @@ function SponsorsAdminPage() {
                     name="contribution"
                     placeholder="50000"
                     value={newSponsor.contribution}
-                    onChange={handleInputChange}
+                    onChange={(e) => setNewSponsor({ ...newSponsor, [e.target.name]: e.target.value })}
                     className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                   />
                 </div>
@@ -522,7 +556,7 @@ function SponsorsAdminPage() {
                     name="contactPerson"
                     placeholder="Contact Person Name"
                     value={newSponsor.contactPerson}
-                    onChange={handleInputChange}
+                    onChange={(e) => setNewSponsor({ ...newSponsor, category: e.target.value })}
                     className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                   />
                 </div>
@@ -536,7 +570,7 @@ function SponsorsAdminPage() {
                     name="email"
                     placeholder="contact@example.com"
                     value={newSponsor.email}
-                    onChange={handleInputChange}
+                    onChange={(e) => setNewSponsor({ ...newSponsor, [e.target.name]: e.target.value })}
                     className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                     required
                   />
@@ -551,7 +585,7 @@ function SponsorsAdminPage() {
                     name="phone"
                     placeholder="123-456-7890"
                     value={newSponsor.phone}
-                    onChange={handleInputChange}
+                    onChange={(e) => setNewSponsor({ ...newSponsor, status: e.target.value })}
                     className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                   />
                 </div>
@@ -579,7 +613,7 @@ function SponsorsAdminPage() {
                   <select
                     name="status"
                     value={newSponsor.status}
-                    onChange={handleInputChange}
+                    onChange={(e) => setNewSponsor({ ...newSponsor, status: e.target.value })}
                     className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                   >
                     <option value="Active">Active</option>
@@ -660,7 +694,7 @@ function SponsorsAdminPage() {
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Contribution
                       </label>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">₹{parseInt(activeSponsorDetails.contribution || 0).toLocaleString()}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">₹{parseInt(activeSponsorDetails.contribution.toString() || "0").toLocaleString()}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -721,6 +755,5 @@ function SponsorsAdminPage() {
 }
 
 export default SponsorsAdminPage;
-
 
 

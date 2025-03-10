@@ -19,7 +19,7 @@ function Page() {
   });
 
   const [editMode, setEditMode] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState<{ id: number; name: string; email: string; role: string; department: string; lastActive: string; eventsManaged: number; status: string } | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -30,10 +30,10 @@ function Page() {
   const [showNotifications, setShowNotifications] = useState(false);
 
   // Handle input change
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     if (editMode) {
-      setCurrentUser({ ...currentUser, [name]: value });
+      setCurrentUser({ ...currentUser, [name]: value } as typeof currentUser);
     } else {
       setNewUser({ ...newUser, [name]: value });
     }
@@ -65,7 +65,7 @@ function Page() {
   };
 
   // Edit user
-  const startEdit = (user) => {
+  const startEdit = (user: { id: number; name: string; email: string; role: string; department: string; lastActive: string; eventsManaged: number; status: string }) => {
     setEditMode(true);
     setCurrentUser(user);
   };
@@ -94,21 +94,23 @@ function Page() {
   };
 
   // Remove user
-  const removeUser = (id) => {
+  const removeUser = (id: number) => {
     const userToRemove = users.find(user => user.id === id);
     setUsers(users.filter(user => user.id !== id));
     
-    // Add notification
-    const newNotification = {
-      id: notifications.length + 1,
-      message: `User ${userToRemove.name} removed from the system`,
-      time: 'Just now'
-    };
-    setNotifications([newNotification, ...notifications]);
+    if (userToRemove) {
+      // Add notification
+      const newNotification = {
+        id: notifications.length + 1,
+        message: `User ${userToRemove.name} removed from the system`,
+        time: 'Just now'
+      };
+      setNotifications([newNotification, ...notifications]);
+    }
   };
 
   // Toggle user status
-  const toggleUserStatus = (id) => {
+  const toggleUserStatus = (id: number) => {
     setUsers(users.map(user => {
       if (user.id === id) {
         const newStatus = user.status === 'active' ? 'inactive' : 'active';
@@ -143,21 +145,23 @@ function Page() {
   };
 
   // Send notification to user
-  const sendNotification = (userId) => {
+  const sendNotification = (userId: number) => {
     const user = users.find(u => u.id === userId);
-    alert(`Notification would be sent to ${user.name} at ${user.email}`);
-    
-    // Add notification
-    const newNotification = {
-      id: notifications.length + 1,
-      message: `Notification sent to ${user.name}`,
-      time: 'Just now'
-    };
-    setNotifications([newNotification, ...notifications]);
+    if (user) {
+      alert(`Notification would be sent to ${user.name} at ${user.email}`);
+      
+      // Add notification
+      const newNotification = {
+        id: notifications.length + 1,
+        message: `Notification sent to ${user.name}`,
+        time: 'Just now'
+      };
+      setNotifications([newNotification, ...notifications]);
+    }
   };
 
   // Role badge component
-  const RoleBadge = ({ role }) => {
+  const RoleBadge = ({ role }: { role: string }) => {
     const getBadgeClass = () => {
       switch(role) {
         case 'admin':
@@ -188,7 +192,7 @@ function Page() {
   };
 
   // Status badge component
-  const StatusBadge = ({ status }) => {
+  const StatusBadge = ({ status }: { status: string }) => {
     const getBadgeClass = () => {
       switch(status) {
         case 'active':
@@ -427,7 +431,7 @@ function Page() {
                 type="text"
                 name="name"
                 placeholder="Enter Name"
-                value={editMode ? currentUser.name : newUser.name}
+                value={editMode && currentUser ? currentUser.name : newUser.name}
                 onChange={handleChange}
                 className="border border-gray-300 dark:border-gray-600 p-3 rounded-lg w-full bg-gray-50 dark:bg-gray-700 dark:text-white"
               />
@@ -439,7 +443,7 @@ function Page() {
                 type="email"
                 name="email"
                 placeholder="Enter Email"
-                value={editMode ? currentUser.email : newUser.email}
+                value={editMode && currentUser ? currentUser.email : newUser.email}
                 onChange={handleChange}
                 className="border border-gray-300 dark:border-gray-600 p-3 rounded-lg w-full bg-gray-50 dark:bg-gray-700 dark:text-white"
               />
@@ -449,7 +453,7 @@ function Page() {
               <label className="block text-sm font-medium mb-1">Role</label>
               <select
                 name="role"
-                value={editMode ? currentUser.role : newUser.role}
+                value={editMode && currentUser ? currentUser.role : newUser.role}
                 onChange={handleChange}
                 className="border border-gray-300 dark:border-gray-600 p-3 rounded-lg w-full bg-gray-50 dark:bg-gray-700 dark:text-white"
               >
@@ -465,7 +469,7 @@ function Page() {
                 type="text"
                 name="department"
                 placeholder="Enter Department"
-                value={editMode ? currentUser.department : newUser.department}
+                value={editMode && currentUser ? currentUser.department : newUser.department}
                 onChange={handleChange}
                 className="border border-gray-300 dark:border-gray-600 p-3 rounded-lg w-full bg-gray-50 dark:bg-gray-700 dark:text-white"
               />
@@ -475,7 +479,7 @@ function Page() {
               <label className="block text-sm font-medium mb-1">Status</label>
               <select
                 name="status"
-                value={editMode ? currentUser.status : newUser.status}
+                value={editMode && currentUser ? currentUser.status : newUser.status}
                 onChange={handleChange}
                 className="border border-gray-300 dark:border-gray-600 p-3 rounded-lg w-full bg-gray-50 dark:bg-gray-700 dark:text-white"
               >

@@ -25,7 +25,7 @@ function Page() {
   const [filterStatus, setFilterStatus] = useState("All");
   const [filterCategory, setFilterCategory] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
-  const [editingEventId, setEditingEventId] = useState(null);
+  const [editingEventId, setEditingEventId] = useState<number | null>(null);
   const [isAnalyticsView, setIsAnalyticsView] = useState(false);
   const [budgetUtilization, setBudgetUtilization] = useState(0);
   const [activeTab, setActiveTab] = useState("events");
@@ -45,7 +45,7 @@ function Page() {
   }, [events]);
 
   // Handle input change
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const value = e.target.name === "budget" || e.target.name === "attendees" 
       ? Number(e.target.value) 
       : e.target.value;
@@ -65,7 +65,7 @@ function Page() {
   const addEvent = () => {
     if (newEvent.title && newEvent.date && newEvent.description) {
       const newId = events.length ? Math.max(...events.map(e => e.id)) + 1 : 1;
-      setEvents([...events, { id: newId, ...newEvent }]);
+      setEvents([...events, { id: newId, ...newEvent, budget: Number(newEvent.budget), attendees: Number(newEvent.attendees) }]);
       setNewEvent({ 
         title: "", 
         date: "", 
@@ -81,12 +81,12 @@ function Page() {
   };
 
   // Remove an event
-  const removeEvent = (id) => {
+  const removeEvent = (id: number) => {
     setEvents(events.filter(event => event.id !== id));
   };
 
   // Edit an event
-  const startEditingEvent = (event) => {
+  const startEditingEvent = (event: { id: number; title: string; date: string; description: string; status: string; budget: number; attendees: number; category: string; venue: string; organizer: string }) => {
     setEditingEventId(event.id);
   };
 
@@ -101,7 +101,7 @@ function Page() {
   };
 
   // Update event status
-  const updateEventStatus = (id, newStatus) => {
+  const updateEventStatus = (id: number, newStatus: string) => {
     setEvents(events.map(event => 
       event.id === id 
         ? { ...event, status: newStatus } 
@@ -460,7 +460,7 @@ function Page() {
                 value={newEvent.description} 
                 onChange={handleChange} 
                 className="border border-gray-300 dark:border-gray-600 p-3 rounded-lg w-full bg-gray-50 dark:bg-gray-600 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 md:col-span-2"
-                rows="3"
+                rows={3}
               />
             </div>
             <button 

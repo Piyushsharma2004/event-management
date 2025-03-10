@@ -13,13 +13,13 @@ const mockStudentData = [
 
 function EmailsAdminPage() {
   // States for data and UI
-  const [students, setStudents] = useState([]);
-  const [selectedEmails, setSelectedEmails] = useState([]);
+  const [students, setStudents] = useState<{ id: number; name: string; email: string; year: string; department: string; program: string; }[]>([]);
+  const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
   const [search, setSearch] = useState('');
-  const [logs, setLogs] = useState([]);
-  const [fileAttachment, setFileAttachment] = useState(null);
+  const [logs, setLogs] = useState<string[]>([]);
+  const [fileAttachment, setFileAttachment] = useState<File | null>(null);
   const [eventLink, setEventLink] = useState('');
   const [formLink, setFormLink] = useState('');
   
@@ -38,14 +38,32 @@ function EmailsAdminPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [useSSL, setUseSSL] = useState(true);
-  const [savedConfigs, setSavedConfigs] = useState([]);
+  interface EmailConfig {
+    id: string;
+    name: string;
+    senderName: string;
+    senderEmail: string;
+    emailProvider: string;
+    smtpServer: string;
+    smtpPort: string;
+    username: string;
+    password: string;
+    useSSL: boolean;
+  }
+
+  const [savedConfigs, setSavedConfigs] = useState<EmailConfig[]>([]);
   const [selectedConfig, setSelectedConfig] = useState('');
 
   // Sending status
   const [isSending, setIsSending] = useState(false);
   const [currentSendingIndex, setCurrentSendingIndex] = useState(0);
   const [sendingProgress, setSendingProgress] = useState(0);
-  const [sendingErrors, setSendingErrors] = useState([]);
+  interface SendingError {
+    email: string;
+    error: string;
+  }
+  
+  const [sendingErrors, setSendingErrors] = useState<SendingError[]>([]);
   
   // Template options
   const [useTemplate, setUseTemplate] = useState(false);
@@ -64,9 +82,9 @@ function EmailsAdminPage() {
   });
 
   // Unique values for filters
-  const [uniqueYears, setUniqueYears] = useState([]);
-  const [uniqueDepartments, setUniqueDepartments] = useState([]);
-  const [uniquePrograms, setUniquePrograms] = useState([]);
+  const [uniqueYears, setUniqueYears] = useState<string[]>([]);
+  const [uniqueDepartments, setUniqueDepartments] = useState<string[]>([]);
+  const [uniquePrograms, setUniquePrograms] = useState<string[]>([]);
 
   // Load student data (simulating database fetch)
   useEffect(() => {
@@ -86,7 +104,7 @@ function EmailsAdminPage() {
   }, []);
 
   // Helper function to parse email and extract information
-  const parseEmailInfo = (email) => {
+  const parseEmailInfo = (email: string) => {
     // Example: piyush.22bcon613@jecrcu.edu.in
     const regex = /^([^.]+)\.(\d{2})([a-z]+)(\d+)@jecrcu\.edu\.in$/i;
     const match = email.match(regex);
@@ -136,7 +154,7 @@ function EmailsAdminPage() {
     return matchesSearch && matchesYear && matchesDepartment && matchesProgram;
   });
 
-  const toggleEmailSelection = (email) => {
+  const toggleEmailSelection = (email: string) => {
     setSelectedEmails(prev =>
       prev.includes(email) ? prev.filter(e => e !== email) : [...prev, email]
     );
@@ -150,7 +168,7 @@ function EmailsAdminPage() {
     setSelectedEmails([]);
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFileAttachment(e.target.files[0]);
     }
@@ -197,7 +215,7 @@ function EmailsAdminPage() {
     alert('Email configuration saved!');
   };
 
-  const loadEmailConfig = (configId) => {
+  const loadEmailConfig = (configId: string) => {
     const config = savedConfigs.find(cfg => cfg.id === configId);
     if (!config) return;
     
@@ -211,7 +229,7 @@ function EmailsAdminPage() {
     setUseSSL(config.useSSL);
   };
 
-  const deleteEmailConfig = (configId) => {
+  const deleteEmailConfig = (configId: string) => {
     if (confirm('Are you sure you want to delete this configuration?')) {
       const updatedConfigs = savedConfigs.filter(cfg => cfg.id !== configId);
       setSavedConfigs(updatedConfigs);
@@ -223,7 +241,7 @@ function EmailsAdminPage() {
     }
   };
 
-  const handleTemplateSelection = (templateId) => {
+  const handleTemplateSelection = (templateId: string) => {
     const template = templates.find(t => t.id === templateId);
     if (template) {
       setSelectedTemplate(templateId);
@@ -232,7 +250,7 @@ function EmailsAdminPage() {
     }
   };
 
-  const applyTemplateVariables = (text, studentEmail) => {
+  const applyTemplateVariables = (text: string, studentEmail: string) => {
     // Find the student based on email
     const student = students.find(s => s.email === studentEmail);
     const studentInfo = student ? parseEmailInfo(student.email) : null;
@@ -309,12 +327,16 @@ function EmailsAdminPage() {
           // Simulate API call with delay
           await new Promise(resolve => setTimeout(resolve, 100));
           
-          // Simulate random errors (~5% of the time)
           if (Math.random() > 0.95) {
             throw new Error(`Failed to send to ${selectedEmails[i]}`);
           }
         } catch (error) {
-          setSendingErrors(prev => [...prev, { email: selectedEmails[i], error: error.message }]);
+          setSendingErrors(prev => [...prev, { email: selectedEmails[i], error: (error as Error).message }]);
+          if (error instanceof Error) {
+            setSendingErrors(prev => [...prev, { email: selectedEmails[i], error: error.message }]);
+          } else {
+            setSendingErrors(prev => [...prev, { email: selectedEmails[i], error: 'Unknown error' }]);
+          }
         }
         
         // Update progress
@@ -330,7 +352,7 @@ function EmailsAdminPage() {
         'without links';
       
       // Group emails by department and year for the log
-      const emailsByGroup = {};
+      const emailsByGroup: { [key: string]: number } = {};
       selectedEmails.forEach(email => {
         const info = parseEmailInfo(email);
         if (info) {
@@ -350,7 +372,11 @@ function EmailsAdminPage() {
       alert(`Email sending complete. ${successCount} emails sent successfully, ${sendingErrors.length} failed.`);
       
     } catch (error) {
-      alert(`Error sending emails: ${error.message}`);
+      if (error instanceof Error) {
+        alert(`Error sending emails: ${error.message}`);
+      } else {
+        alert('Error sending emails: Unknown error');
+      }
     } finally {
       setIsSending(false);
     }
@@ -727,7 +753,7 @@ function EmailsAdminPage() {
                       </label>
                       <input
                         type="text"
-                        value={templateVars[key]}
+                        value={templateVars[key as keyof typeof templateVars]}
                         onChange={(e) => setTemplateVars({...templateVars, [key]: e.target.value})}
                         className="w-full p-2 border rounded"
                       />
@@ -755,7 +781,7 @@ function EmailsAdminPage() {
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 className="w-full p-2 border rounded"
-                rows="6"
+                rows={6}
               />
             </div>
             

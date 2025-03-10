@@ -21,7 +21,7 @@ function EventAdminPage() {
       totalSpots: 200,
       registeredAttendees: 75,
       imageUrl: "/event.jpeg",
-      bannerPreview: null
+      bannerPreview: null as string | ArrayBuffer | null
     },
     { 
       id: 2, 
@@ -59,17 +59,17 @@ function EventAdminPage() {
     totalSpots: 100,
     registeredAttendees: 0,
     imageUrl: "",
-    bannerPreview: null
+    bannerPreview: null as string | ArrayBuffer | null
   };
 
   const [newEvent, setNewEvent] = useState({ ...defaultNewEvent });
-  const [editingEvent, setEditingEvent] = useState(null);
+  const [editingEvent, setEditingEvent] = useState<typeof events[0] | null>(null);
   const [activeTab, setActiveTab] = useState("basic"); // Tabs: basic, details, speakers
-  const fileInputRef = useRef(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Handle Input Change
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value, type, checked } = e.target as HTMLInputElement;
     
     if (type === "checkbox") {
       // Handle checkbox specifically for isFree
@@ -85,25 +85,27 @@ function EventAdminPage() {
   };
 
   // Handle array inputs (highlights, speakers)
-  const handleArrayInputChange = (index, field, value) => {
+  const handleArrayInputChange = (index: number, field: 'highlights' | 'speakers', value: string) => {
     const updatedArray = [...newEvent[field]];
     updatedArray[index] = value;
     setNewEvent({ ...newEvent, [field]: updatedArray });
   };
 
-  const addArrayItem = (field) => {
+  const addArrayItem = (field: 'highlights' | 'speakers') => {
     setNewEvent({ ...newEvent, [field]: [...newEvent[field], ""] });
   };
 
-  const removeArrayItem = (field, index) => {
+  const removeArrayItem = (field: 'highlights' | 'speakers', index: number) => {
     const updatedArray = [...newEvent[field]];
     updatedArray.splice(index, 1);
     setNewEvent({ ...newEvent, [field]: updatedArray });
   };
 
   // Handle image upload
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    const file = files[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -129,23 +131,25 @@ function EventAdminPage() {
   };
 
   // Edit Event
-  const startEdit = (event) => {
+  const startEdit = (event: typeof events[0]) => {
     setEditingEvent(event);
     setNewEvent({ ...event });
     setActiveTab("basic");
   };
 
   const saveEdit = () => {
-    setEvents(
-      events.map((ev) => (ev.id === editingEvent.id ? { ...ev, ...newEvent } : ev))
-    );
+    if (editingEvent) {
+      setEvents(
+        events.map((ev) => (ev.id === editingEvent.id ? { ...ev, ...newEvent } : ev))
+      );
+    }
     setEditingEvent(null);
     setNewEvent({ ...defaultNewEvent });
     setActiveTab("basic");
   };
 
   // Delete Event
-  const deleteEvent = (id) => {
+  const deleteEvent = (id: number) => {
     if (confirm("Are you sure you want to delete this event?")) {
       setEvents(events.filter((event) => event.id !== id));
     }
@@ -308,11 +312,11 @@ function EventAdminPage() {
                   className="hidden"
                 />
                 <div 
-                  onClick={() => fileInputRef.current.click()} 
+                  onClick={() => fileInputRef.current && fileInputRef.current.click()} 
                   className="w-full h-32 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   {newEvent.bannerPreview ? (
-                    <img src={newEvent.bannerPreview} alt="Preview" className="h-full object-contain" />
+                    <img src={newEvent.bannerPreview as string} alt="Preview" className="h-full object-contain" />
                   ) : (
                     <span className="text-gray-500">Click to upload image</span>
                   )}
@@ -332,7 +336,7 @@ function EventAdminPage() {
                   value={newEvent.about}
                   onChange={handleInputChange}
                   className="w-full p-2 border rounded"
-                  rows="4"
+                  rows={4}
                 />
               </div>
               
@@ -454,7 +458,7 @@ function EventAdminPage() {
                 {/* Event Banner */}
                 <div className="h-40 bg-gray-200 flex items-center justify-center">
                   {event.bannerPreview ? (
-                    <img src={event.bannerPreview} alt={event.name} className="h-full w-full object-cover" />
+                    <img src={event.bannerPreview as string} alt={event.name} className="h-full w-full object-cover" />
                   ) : (
                     <span className="text-gray-500">No image</span>
                   )}

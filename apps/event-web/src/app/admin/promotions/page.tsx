@@ -51,7 +51,7 @@ function PromotionsAdminPage() {
   });
   
   const [isEditing, setIsEditing] = useState(false);
-  const [editId, setEditId] = useState(null);
+  const [editId, setEditId] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('All');
@@ -61,8 +61,32 @@ function PromotionsAdminPage() {
   
   const categories = ['General', 'Cultural', 'Technical', 'Sports', 'Academic', 'Networking'];
   
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+  interface Promotion {
+    id: number;
+    title: string;
+    description: string;
+    startDate: string;
+    endDate: string;
+    category: string;
+    isActive: boolean;
+    discount: number;
+    code: string;
+  }
+
+  interface NewPromotion {
+    title: string;
+    description: string;
+    startDate: string;
+    endDate: string;
+    category: string;
+    isActive: boolean;
+    discount: number;
+    code: string;
+  }
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+    const checked = (e.target as HTMLInputElement).checked;
     setNewPromotion({ 
       ...newPromotion, 
       [name]: type === 'checkbox' ? checked : value 
@@ -107,7 +131,19 @@ function PromotionsAdminPage() {
     setShowForm(false);
   };
   
-  const startEditing = (promotion) => {
+  interface PromotionToEdit {
+    id: number;
+    title: string;
+    description: string;
+    startDate: string;
+    endDate: string;
+    category: string;
+    isActive: boolean;
+    discount: number;
+    code: string;
+  }
+
+  const startEditing = (promotion: PromotionToEdit) => {
     setIsEditing(true);
     setEditId(promotion.id);
     setNewPromotion({...promotion});
@@ -121,7 +157,7 @@ function PromotionsAdminPage() {
     }
     
     setPromotions(promotions.map(promo => 
-      promo.id === editId ? {...newPromotion} : promo
+      promo.id === editId ? {...newPromotion, id: promo.id} : promo
     ));
     
     setNewPromotion({ 
@@ -139,13 +175,13 @@ function PromotionsAdminPage() {
     setShowForm(false);
   };
   
-  const deletePromotion = (id) => {
+  const deletePromotion = (id: number) => {
     if (window.confirm('Are you sure you want to delete this promotion?')) {
       setPromotions(promotions.filter(promo => promo.id !== id));
     }
   };
   
-  const togglePromotionStatus = (id) => {
+  const togglePromotionStatus = (id: number) => {
     setPromotions(promotions.map(promo => 
       promo.id === id ? {...promo, isActive: !promo.isActive} : promo
     ));
@@ -167,7 +203,11 @@ function PromotionsAdminPage() {
     setShowForm(false);
   };
   
-  const handleSort = (field) => {
+  interface SortHandler {
+    (field: string): void;
+  }
+
+  const handleSort: SortHandler = (field) => {
     if (sortBy === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
@@ -197,7 +237,7 @@ function PromotionsAdminPage() {
       if (sortBy === 'title') {
         comparison = a.title.localeCompare(b.title);
       } else if (sortBy === 'startDate') {
-        comparison = new Date(a.startDate) - new Date(b.startDate);
+        comparison = new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
       } else if (sortBy === 'discount') {
         comparison = a.discount - b.discount;
       }

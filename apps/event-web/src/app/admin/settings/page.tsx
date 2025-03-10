@@ -32,12 +32,32 @@ function SettingsPage() {
   };
 
   // Handle user role change
-  const handleRoleChange = (e) => {
+  interface Settings {
+    emailNotifications: boolean;
+    pushNotifications: boolean;
+    eventReminders: boolean;
+    dataAnalytics: boolean;
+    autoApproval: boolean;
+    publicCalendar: boolean;
+    resourceManagement: boolean;
+  }
+
+  const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
     setSelectedRole(e.target.value);
   };
 
   // Handle settings change
-  const handleSettingChange = (setting) => {
+  interface Settings {
+    emailNotifications: boolean;
+    pushNotifications: boolean;
+    eventReminders: boolean;
+    dataAnalytics: boolean;
+    autoApproval: boolean;
+    publicCalendar: boolean;
+    resourceManagement: boolean;
+  }
+
+  const handleSettingChange = (setting: keyof Settings): void => {
     setSettings({
       ...settings,
       [setting]: !settings[setting]
@@ -50,9 +70,13 @@ function SettingsPage() {
     console.log('Saving settings:', { theme, selectedRole, settings });
     // Show success message
     const saveMessage = document.getElementById('saveMessage');
-    saveMessage.classList.remove('opacity-0');
+    if (saveMessage) {
+      saveMessage.classList.remove('opacity-0');
+    }
     setTimeout(() => {
-      saveMessage.classList.add('opacity-0');
+      if (saveMessage) {
+        saveMessage.classList.add('opacity-0');
+      }
     }, 3000);
   };
 
