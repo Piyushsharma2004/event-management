@@ -38,27 +38,34 @@ export default function ConfirmTicket({ params }: ConfirmTicketProps) {
   const eventId = params?.id;
 
   useEffect(() => {
+    let isMounted = true;
+  
     async function fetchTicketDetails() {
+      setLoading(true); // ✅ Ensure UI shows loading state while fetching
       try {
-        // Fetch ticket details from API
         const res = await fetch(`/api/tickets/${ticketId}`);
-        if (!res.ok) throw new Error("Failed to fetch ticket details");
-        
+        if (!res.ok) throw new Error(`Failed to fetch ticket details: ${res.statusText}`);
+  
         const data = await res.json();
-        setTicketDetails(data);
+        if (isMounted) setTicketDetails(data); // ✅ Avoid updating state if unmounted
       } catch (error) {
         console.error("Error fetching ticket details:", error);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     }
-
-    if (ticketId !== "N/A") {
+  
+    if (ticketId && ticketId !== "N/A") {
       fetchTicketDetails();
     } else {
       setLoading(false);
     }
+  
+    return () => {
+      isMounted = false;
+    }; // ✅ Cleanup function to prevent memory leaks
   }, [ticketId]);
+  
 
   const handleDownloadQR = () => {
     if (!qrRef.current) return;

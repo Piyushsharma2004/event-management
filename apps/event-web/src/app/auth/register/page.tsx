@@ -23,49 +23,46 @@ export default function RegisterPage() {
     e.preventDefault();
     setIsLoading(true);
     setErrorMessage("");
-
+  
     // Validate password match
     if (password !== confirmPassword) {
       setErrorMessage("Passwords do not match");
       setIsLoading(false);
       return;
     }
-
+  
+    // ✅ Enforce password strength requirements
+    const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
+    if (!passwordRegex.test(password)) {
+      setErrorMessage("Password must be at least 8 characters long, include one uppercase letter, one lowercase letter, and one number.");
+      setIsLoading(false);
+      return;
+    }
+  
     try {
-      // Make API call to create account
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name,
-          email,
-          password,
-        } as RegisterFormData),
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password } as RegisterFormData),
       });
-
+  
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to register");
-      }
-
-      // If successful, sign in the user
+      if (!response.ok) throw new Error(data.message || "Failed to register");
+  
+      // ✅ Ensure user is redirected only on success
       await signIn("credentials", {
         redirect: true,
         callbackUrl: "/dashboard",
         email,
         password,
       });
-
     } catch (error: any) {
       setErrorMessage(error.message || "An error occurred during registration");
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // ✅ Ensures loading state is updated correctly
     }
   };
-
+  
   const handleOAuthSignIn = (provider: string) => {
     setIsLoading(true);
     signIn(provider, { callbackUrl: "/dashboard" });

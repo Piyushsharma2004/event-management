@@ -106,64 +106,74 @@ export default function BookTicket({ params }: { params: Params }) {
   }, [eventDetails, params?.id, selectedTicketType, quantity]); // ✅ Ensures correct dependencies
 
   const handlePayment = async () => {
-    if (!orderId) return alert("Failed to create order. Please try again.");
-
+    if (!orderId) {
+      alert("Failed to create order. Please try again.");
+      return;
+    }
+  
+    if (!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID) {
+      alert("Payment gateway key missing. Please contact support.");
+      return;
+    }
+  
+    const totalAmount = calculateFinalAmount();
+    if (!totalAmount || isNaN(totalAmount)) {
+      alert("Invalid amount. Please try again.");
+      return;
+    }
+  
     const options = {
-      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-      amount: calculateFinalAmount() * 100,
+      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
+      amount: totalAmount * 100, // Convert to paise
       currency: "INR",
       name: eventDetails?.title || "Event Ticket",
       description: `${ticketTypes[selectedTicketType].name} Ticket for ${eventDetails?.title || "the event"}`,
       order_id: orderId,
-      prefill: {
-        name: "",
-        email: "",
-        contact: ""
-      },
-      theme: {
-        color: "#3B82F6",
-      },
+      prefill: { name: "", email: "", contact: "" },
+      theme: { color: "#3B82F6" },
       modal: {
-        ondismiss: function() {
+        ondismiss: function () {
           console.log("Payment dismissed");
-        }
+        },
       },
       handler: async function (response: any) {
         setLoading(true);
         try {
           const verifyRes = await fetch("/api/payment/verify", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               orderId: orderId,
               paymentId: response.razorpay_payment_id,
               signature: response.razorpay_signature,
               ticketType: selectedTicketType,
               quantity: quantity,
-              eventId: params.id
+              eventId: params.id,
             }),
           });
-
+  
           const verifyData = await verifyRes.json();
-          if (verifyData.success) {
-            router.push(`/events/${params.id}/confirm?ticketId=${verifyData.ticketId}`);
-          } else {
-            alert("Payment verification failed. Please contact support.");
-          }
+          if (!verifyData.success) throw new Error("Payment verification failed");
+  
+          router.push(`/events/${params.id}/confirm?ticketId=${verifyData.ticketId}`);
         } catch (error) {
           console.error("Payment verification error:", error);
-          alert("An error occurred during payment verification");
+          alert("An error occurred during payment verification.");
         } finally {
           setLoading(false);
         }
       },
     };
-
-    const razorpay = new window.Razorpay(options);
-    razorpay.open();
+  
+    // ✅ Ensure Razorpay script is loaded before using `window.Razorpay`
+    if (typeof window !== "undefined") {
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+    } else {
+      console.error("Razorpay is not available in SSR mode");
+    }
   };
+  
 
   if (loading && !eventDetails) {
     return (
