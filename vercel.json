@@ -1,8 +1,11 @@
 {
-    "projects": {
-      "event-web": {
-        "rootDirectory": "apps/event-web"
-      }
+  "builds": [
+    {
+      "src": "apps/event-web/package.json",
+      "use": "@vercel/next"
     }
-  }
-  
+  ],
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/apps/event-web/$1" }
+  ]
+}
