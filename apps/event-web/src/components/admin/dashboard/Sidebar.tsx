@@ -179,7 +179,7 @@ export default function Sidebar() {
   }
 
   return (
-    <div className={`${collapsed ? 'w-16' : 'w-64'} bg-gray-800 dark:bg-gray-900 text-white min-h-screen transition-all duration-300 ease-in-out shadow-lg flex flex-col`}>
+    <div className={`${collapsed ? 'w-16' : 'w-64'} bg-gray-800 dark:bg-gray-900 text-white min-h-screen transition-all duration-300 ease-in-out shadow-lg flex flex-col  `}>
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-700">
         {!collapsed && (
@@ -210,44 +210,11 @@ export default function Sidebar() {
               {!collapsed && (
                 <>
                   <span className="flex-grow">{item.name}</span>
-                  {item.submenu && (
-                    <button 
-                      onClick={(e) => toggleSubmenu(index, e)} 
-                      className="focus:outline-none"
-                    >
-                      <svg 
-                        xmlns="http://www.w3.org/2000/svg" 
-                        className={`h-4 w-4 transition-transform duration-200 ${submenuOpen === index ? 'transform rotate-180' : ''}`} 
-                        fill="none" 
-                        viewBox="0 0 24 24" 
-                        stroke="currentColor"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                  )}
                 </>
               )}
             </Link>
             
             {/* Submenu items */}
-            {!collapsed && item.submenu && submenuOpen === index && (
-              <div className="bg-gray-900 dark:bg-gray-950 pl-12 py-1">
-                {item.submenu.map((subItem, subIndex) => (
-                  <Link 
-                    href={subItem.path} 
-                    key={subIndex}
-                    className={`block py-2 px-2 text-sm ${
-                      pathname === subItem.path
-                        ? 'text-blue-400'
-                        : 'text-gray-400 hover:text-white'
-                    }`}
-                  >
-                    {subItem.name}
-                  </Link>
-                ))}
-              </div>
-            )}
           </div>
         ))}
       </div>

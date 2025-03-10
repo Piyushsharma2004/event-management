@@ -9,7 +9,7 @@ export async function GET() {
   return NextResponse.json(events);
 }
 
-export async function POST(request) {
+export async function POST(request: Request) {
     const newEvent = await request.json();
     newEvent.id = Date.now().toString();
     events.push(newEvent);

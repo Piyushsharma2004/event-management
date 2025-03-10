@@ -3,7 +3,16 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 
 export default function EventsPreview() {
-  const [events, setEvents] = useState([]);
+  interface Event {
+    id: string;
+    name: string;
+    description?: string;
+    date: string;
+    club: string;
+    isPublished: boolean;
+  }
+
+  const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   
@@ -16,7 +25,7 @@ export default function EventsPreview() {
       
       // If club admin, filter events for their club
       if (userData.role === "club_admin") {
-        setEvents(eventsData.filter(event => event.club === userData.club).slice(0, 5));
+        setEvents(eventsData.filter((event: any) => event.club === userData.club).slice(0, 5));
       } else {
         setEvents(eventsData.slice(0, 5));
       }

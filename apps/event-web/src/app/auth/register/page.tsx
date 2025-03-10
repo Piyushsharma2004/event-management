@@ -13,18 +13,24 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const handleRegister = async (e) => {
+  interface RegisterFormData {
+    name: string;
+    email: string;
+    password: string;
+  }
+
+  const handleRegister = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     setIsLoading(true);
     setErrorMessage("");
-    
+
     // Validate password match
     if (password !== confirmPassword) {
       setErrorMessage("Passwords do not match");
       setIsLoading(false);
       return;
     }
-    
+
     try {
       // Make API call to create account
       const response = await fetch('/api/auth/register', {
@@ -36,15 +42,15 @@ export default function RegisterPage() {
           name,
           email,
           password,
-        }),
+        } as RegisterFormData),
       });
-      
+
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.message || "Failed to register");
       }
-      
+
       // If successful, sign in the user
       await signIn("credentials", {
         redirect: true,
@@ -52,15 +58,15 @@ export default function RegisterPage() {
         email,
         password,
       });
-      
-    } catch (error) {
+
+    } catch (error: any) {
       setErrorMessage(error.message || "An error occurred during registration");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleOAuthSignIn = (provider) => {
+  const handleOAuthSignIn = (provider: string) => {
     setIsLoading(true);
     signIn(provider, { callbackUrl: "/dashboard" });
   };

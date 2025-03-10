@@ -5,14 +5,34 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { QRCodeCanvas } from "qrcode.react";
 import Image from "next/image";
 
-export default function ConfirmTicket({ params }) {
+interface ConfirmTicketProps {
+  params: {
+    id: string;
+  };
+}
+
+export default function ConfirmTicket({ params }: ConfirmTicketProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [ticketDetails, setTicketDetails] = useState(null);
+  interface TicketDetails {
+    event: {
+      title: string;
+      coverImage: string;
+      date: string;
+      time: string;
+      venue: string;
+      address: string;
+    };
+    ticketType: string;
+    quantity: number;
+    amount: number;
+  }
+  
+  const [ticketDetails, setTicketDetails] = useState<TicketDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [showShareOptions, setShowShareOptions] = useState(false);
   const [showSaveSuccess, setShowSaveSuccess] = useState(false);
-  const qrRef = useRef(null);
+  const qrRef = useRef<HTMLDivElement>(null);
   
   const ticketId = searchParams.get("ticketId") || "N/A";
   const eventId = params?.id;
@@ -44,6 +64,7 @@ export default function ConfirmTicket({ params }) {
     if (!qrRef.current) return;
     
     const canvas = qrRef.current.querySelector("canvas");
+    if (!canvas) return;
     const url = canvas.toDataURL("image/png");
     const link = document.createElement("a");
     link.href = url;
@@ -178,7 +199,6 @@ export default function ConfirmTicket({ params }) {
                 value={`event:${eventId}:ticket:${ticketId}:type:${ticketDetails?.ticketType || "regular"}:qty:${ticketDetails?.quantity || 1}`} 
                 size={150}
                 level="H"
-                renderAs="canvas"
                 bgColor={"#ffffff"}
                 fgColor={"#000000"}
                 includeMargin={true}

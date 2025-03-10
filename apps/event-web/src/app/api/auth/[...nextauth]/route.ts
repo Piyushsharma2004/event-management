@@ -9,7 +9,7 @@ export const authOptions = {
     }),
   ],
   callbacks: {
-    async session({ session }) {
+    async session({ session }: { session: any }) {
       const adminEmails = ["admin@example.com", "club@university.com"]; // Replace with DB check later
       session.user.isAdmin = adminEmails.includes(session.user.email);
       return session;

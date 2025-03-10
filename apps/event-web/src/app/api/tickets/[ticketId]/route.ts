@@ -1,7 +1,9 @@
 // Import any required dependencies (if needed)
 // import { NextResponse } from 'next/server';
 
-export async function GET(request, { params }) {
+import { NextRequest } from 'next/server';
+
+export async function GET(request: NextRequest, { params }: { params: { ticketId: string } }) {
     try {
       // Get the ticketId from the URL params
       const ticketId = params.ticketId;

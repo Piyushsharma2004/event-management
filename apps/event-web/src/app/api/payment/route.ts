@@ -7,20 +7,35 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-export async function POST(request) {
+interface PaymentRequest {
+  eventId: string;
+  amount: number;
+}
+
+interface RazorpayOrderOptions {
+  amount: number;
+  currency: string;
+  receipt: string;
+}
+
+interface RazorpayOrder {
+  id: string;
+}
+
+export async function POST(request: Request): Promise<NextResponse> {
   try {
-    const { eventId, amount } = await request.json();
+    const { eventId, amount }: PaymentRequest = await request.json();
     
-    const options = {
+    const options: RazorpayOrderOptions = {
       amount: amount * 100, // Convert to paise
       currency: "INR",
       receipt: `receipt_${eventId}_${Date.now()}`,
     };
 
-    const order = await razorpay.orders.create(options);
+    const order: RazorpayOrder = await razorpay.orders.create(options);
 
     return NextResponse.json({ orderId: order.id });
-  } catch (error) {
+  } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

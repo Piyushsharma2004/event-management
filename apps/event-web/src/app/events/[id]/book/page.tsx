@@ -1,15 +1,34 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
+// Declare Razorpay on the window object
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
-export default function BookTicket({ params }) {
+interface Params {
+  id: string;
+}
+
+export default function BookTicket({ params }: { params: Params }) {
   const [orderId, setOrderId] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [eventDetails, setEventDetails] = useState(null);
+  interface EventDetails {
+    title: string;
+    coverImage: string;
+    date: string;
+    time?: string;
+    venue?: string;
+  }
+
+  const [eventDetails, setEventDetails] = useState<EventDetails | null>(null);
   const [quantity, setQuantity] = useState(1);
-  const [selectedTicketType, setSelectedTicketType] = useState("regular");
+  const [selectedTicketType, setSelectedTicketType] = useState<keyof typeof ticketTypes>("regular");
   const router = useRouter();
 
   const ticketTypes = {
@@ -105,7 +124,7 @@ export default function BookTicket({ params }) {
           console.log("Payment dismissed");
         }
       },
-      handler: async function (response) {
+      handler: async function (response: any) {
         setLoading(true);
         try {
           const verifyRes = await fetch("/api/payment/verify", {
@@ -204,7 +223,7 @@ export default function BookTicket({ params }) {
               {Object.entries(ticketTypes).map(([type, details]) => (
                 <div 
                   key={type}
-                  onClick={() => setSelectedTicketType(type)}
+                  onClick={() => setSelectedTicketType(type as keyof typeof ticketTypes)}
                   className={`border rounded-lg p-4 cursor-pointer transition-all duration-200 ${
                     selectedTicketType === type 
                       ? 'border-blue-600 bg-blue-50 dark:border-blue-500 dark:bg-blue-900/30' 

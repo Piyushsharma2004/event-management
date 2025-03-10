@@ -144,7 +144,9 @@ const events = [
   }
 ];
 
-export async function GET(request, { params }) {
+import { NextRequest } from "next/server";
+
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   // Get specific event
   if (params.id) {
     const event = events.find((e) => e.id === params.id);

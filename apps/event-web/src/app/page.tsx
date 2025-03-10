@@ -7,7 +7,18 @@ import useColorMode from "@/hook/useColorMode";
 
 export default function HomePage() {
   const [colorMode] = useColorMode();
-  const [events, setEvents] = useState([]);
+  type Event = {
+    id: number;
+    name: string;
+    category: string;
+    date: string;
+    time: string;
+    location: string;
+    description: string;
+    image: string;
+  };
+
+  const [events, setEvents] = useState<Event[]>([]);
   const [categories, setCategories] = useState([
     { id: 1, name: "Academic", count: 24, icon: <BookOpen className="w-5 h-5" /> },
     { id: 2, name: "Cultural", count: 18, icon: <Music className="w-5 h-5" /> },

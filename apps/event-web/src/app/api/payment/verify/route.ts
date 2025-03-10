@@ -1,12 +1,18 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 
-export async function POST(request) {
+interface PaymentRequest {
+  orderId: string;
+  paymentId: string;
+  signature: string;
+}
+
+export async function POST(request: Request): Promise<Response> {
   try {
-    const { orderId, paymentId, signature } = await request.json();
+    const { orderId, paymentId, signature }: PaymentRequest = await request.json();
 
     const generatedSignature = crypto
-      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET as string)
       .update(`${orderId}|${paymentId}`)
       .digest("hex");
 
@@ -15,7 +21,7 @@ export async function POST(request) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

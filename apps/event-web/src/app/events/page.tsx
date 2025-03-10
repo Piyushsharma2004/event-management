@@ -6,8 +6,21 @@ import Image from "next/image";
 import { Calendar, MapPin, Clock, Filter, Search, Users, Tag, ChevronDown, Grid, List } from "lucide-react";
 
 export default function EventsPage() {
-  const [events, setEvents] = useState([]);
-  const [filteredEvents, setFilteredEvents] = useState([]);
+  interface Event {
+    id: string;
+    name: string;
+    description?: string;
+    category: string;
+    date: string;
+    time?: string;
+    club: string;
+    location?: string;
+    price: number;
+    image?: string;
+  }
+
+  const [events, setEvents] = useState<Event[]>([]);
+  const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [showFilters, setShowFilters] = useState(false);

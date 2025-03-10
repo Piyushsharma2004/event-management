@@ -5,8 +5,30 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Calendar, Clock, MapPin, Users, Tag, Share2, Heart, ChevronLeft, Info, Ticket, Moon, Sun } from "lucide-react";
 
-export default function EventDetails({ params }) {
-  const [event, setEvent] = useState(null);
+interface Params {
+  id: string;
+}
+
+interface Event {
+  id: string;
+  name: string;
+  date: string;
+  image?: string;
+  time?: string;
+  location?: string;
+  organizer?: { name: string; logo?: string };
+  category?: string;
+  registeredCount?: number;
+  totalSpots?: number;
+  description?: string;
+  highlights?: string[];
+  speakers?: { name: string; role: string; image?: string }[];
+  price?: number;
+  club?: string;
+}
+
+export default function EventDetails({ params }: { params: Params }) {
+  const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [liked, setLiked] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
@@ -64,7 +86,7 @@ export default function EventDetails({ params }) {
 
   // For demo purposes - normally these would come from the API
   const eventWithDefaults = {
-    ...event,
+    ...(event || {}),
     image: event.image || null,
     time: event.time || "6:00 PM - 9:00 PM",
     location: event.location || "Main Campus Auditorium",

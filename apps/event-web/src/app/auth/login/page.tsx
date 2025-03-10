@@ -11,7 +11,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const handleEmailLogin = async (e) => {
+  const handleEmailLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     setErrorMessage("");
@@ -33,7 +33,7 @@ export default function LoginPage() {
     }
   };
 
-  const handleOAuthSignIn = (provider) => {
+  const handleOAuthSignIn = (provider: string) => {
     setIsLoading(true);
     signIn(provider, { callbackUrl: "/dashboard" });
   };
