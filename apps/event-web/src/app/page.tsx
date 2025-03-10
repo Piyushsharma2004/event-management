@@ -179,7 +179,7 @@ export default function HomePage() {
         <div className="flex justify-between items-center mb-10">
           <div>
             <h2 className="text-3xl font-bold dark:text-white">Upcoming Events</h2>
-            <p className="text-gray-600 dark:text-gray-300 mt-2">Don't miss out on these popular events</p>
+            <p className="text-gray-600 dark:text-gray-300 mt-2">Don&apos;t miss out on this event</p>
           </div>
           <Link href="/events">
             <span className="text-orange-600 dark:text-orange-400 font-medium hover:underline">View all →</span>

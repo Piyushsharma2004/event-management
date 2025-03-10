@@ -1,7 +1,11 @@
 'use client';
 import React, { useState, useEffect } from "react";
 import Head from "next/head";
-import { Search, Filter, Upload, AlertCircle, CheckCircle, Download, PieChart, Trash2, Edit2, X } from "lucide-react";
+import { FaSearch, FaCheckCircle } from "react-icons/fa";
+import { IoMdDownload } from "react-icons/io";
+import { IoFilterSharp, IoCloseSharp ,IoAlertCircleSharp } from "react-icons/io5";
+import Image from "next/image";
+
 
 function SponsorsAdminPage() {
   const [sponsors, setSponsors] = useState([
@@ -300,7 +304,7 @@ function SponsorsAdminPage() {
               onClick={exportSponsorsCSV}
               className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center"
             >
-              <Download size={16} className="mr-2" />
+              <IoMdDownload size={16} className="mr-2" />
               <span>Export Data</span>
             </button>
           </div>
@@ -330,7 +334,7 @@ function SponsorsAdminPage() {
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="relative">
-              <Search size={18} className="absolute left-3 top-3 text-gray-400" />
+              <FaSearch size={18} className="absolute left-3 top-3 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search sponsors..."
@@ -341,7 +345,7 @@ function SponsorsAdminPage() {
             </div>
             
             <div className="relative">
-              <Filter size={18} className="absolute left-3 top-3 text-gray-400" />
+              < IoFilterSharp size={18} className="absolute left-3 top-3 text-gray-400" />
               <select
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
@@ -355,7 +359,7 @@ function SponsorsAdminPage() {
             </div>
             
             <div className="relative">
-              <Filter size={18} className="absolute left-3 top-3 text-gray-400" />
+              <IoFilterSharp size={18} className="absolute left-3 top-3 text-gray-400" />
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
@@ -482,7 +486,7 @@ function SponsorsAdminPage() {
                   }}
                   className="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100"
                 >
-                  <X size={20} />
+                  <IoCloseSharp size={20} />
                 </button>
               </div>
               
@@ -667,7 +671,7 @@ function SponsorsAdminPage() {
                   onClick={() => setActiveSponsorDetails(null)}
                   className="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100"
                 >
-                  <X size={20} />
+                  <IoCloseSharp size={20} />
                 </button>
               </div>
               
@@ -745,7 +749,7 @@ function SponsorsAdminPage() {
           {/* Notification */}
           {showNotification && (
             <div className={`fixed bottom-4 right-4 bg-${isSuccess ? 'green' : 'red'}-500 text-white px-4 py-2 rounded-lg flex items-center shadow-lg`}>
-              {isSuccess ? <CheckCircle size={20} className="mr-2" /> : <AlertCircle size={20} className="mr-2" />}
+              {isSuccess ? <FaCheckCircle size={20} className="mr-2" /> : <IoAlertCircleSharp size={20} className="mr-2" />}
               <span>{notificationMessage}</span>
             </div>
           )}
