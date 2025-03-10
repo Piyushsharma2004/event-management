@@ -13,14 +13,22 @@ export default function BookTicket({ params }) {
   const router = useRouter();
 
   const ticketTypes = {
-    regular: { price: 500, name: "Regular" },
-    vip: { price: 1200, name: "VIP" },
-    premium: { price: 2000, name: "Premium" }
+    regular: { price: 500, name: "Regular", description: "Standard admission" },
+    vip: { price: 1200, name: "VIP", description: "Priority seating + Welcome drink" },
+    premium: { price: 2000, name: "Premium", description: "Front row + Welcome drink + Meet & Greet" }
   };
 
   // Calculate total price based on quantity and ticket type
   const calculateTotal = () => {
     return ticketTypes[selectedTicketType].price * quantity;
+  };
+
+  // Calculate final amount with taxes and fees
+  const calculateFinalAmount = () => {
+    const subtotal = calculateTotal();
+    const platformFee = 49;
+    const gst = Math.round((subtotal + platformFee) * 0.18);
+    return subtotal + platformFee + gst;
   };
 
   useEffect(() => {
@@ -79,7 +87,7 @@ export default function BookTicket({ params }) {
 
     const options = {
       key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-      amount: calculateTotal() * 100,
+      amount: calculateFinalAmount() * 100,
       currency: "INR",
       name: eventDetails?.title || "Event Ticket",
       description: `${ticketTypes[selectedTicketType].name} Ticket for ${eventDetails?.title || "the event"}`,
@@ -136,28 +144,32 @@ export default function BookTicket({ params }) {
 
   if (loading && !eventDetails) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen flex items-center justify-center dark:bg-gray-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600 dark:border-blue-400"></div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
+    <div className="max-w-4xl mx-auto p-4 md:p-6 pb-16 dark:bg-gray-900 dark:text-gray-100 my-8 rounded-3xl">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden mb-8 transition-colors">
         {/* Event Header */}
         {eventDetails?.coverImage && (
-          <div className="relative h-64 w-full">
+          <div className="relative h-80 w-full">
             <Image
               src={eventDetails.coverImage}
               alt={eventDetails.title}
               fill
               className="object-cover"
+              priority
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
             <div className="absolute bottom-0 left-0 p-6">
               <h1 className="text-3xl font-bold text-white">{eventDetails.title}</h1>
-              <p className="text-white/90">
+              <p className="text-white/90 flex items-center mt-2">
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
                 {new Date(eventDetails.date).toLocaleDateString('en-US', {
                   weekday: 'long',
                   month: 'long',
@@ -166,14 +178,28 @@ export default function BookTicket({ params }) {
                 })}
                 {eventDetails.time && ` • ${eventDetails.time}`}
               </p>
+              {eventDetails.venue && (
+                <p className="text-white/90 flex items-center mt-1">
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  </svg>
+                  {eventDetails.venue}
+                </p>
+              )}
             </div>
           </div>
         )}
 
         {/* Ticket Selection */}
-        <div className="p-6">
+        <div className="p-6 transition-colors">
           <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">Select Ticket Type</h2>
+            <h2 className="text-xl font-semibold mb-4 dark:text-gray-100 flex items-center">
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path>
+              </svg>
+              Select Ticket Type
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {Object.entries(ticketTypes).map(([type, details]) => (
                 <div 
@@ -181,27 +207,24 @@ export default function BookTicket({ params }) {
                   onClick={() => setSelectedTicketType(type)}
                   className={`border rounded-lg p-4 cursor-pointer transition-all duration-200 ${
                     selectedTicketType === type 
-                      ? 'border-blue-600 bg-blue-50' 
-                      : 'border-gray-200 hover:border-gray-300'
+                      ? 'border-blue-600 bg-blue-50 dark:border-blue-500 dark:bg-blue-900/30' 
+                      : 'border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600'
                   }`}
                 >
                   <div className="flex justify-between items-center">
-                    <h3 className="font-medium">{details.name}</h3>
-                    <div className={`h-5 w-5 rounded-full border ${
+                    <h3 className="font-medium dark:text-gray-100">{details.name}</h3>
+                    <div className={`h-5 w-5 rounded-full border flex items-center justify-center ${
                       selectedTicketType === type 
-                        ? 'border-blue-600 bg-blue-600' 
-                        : 'border-gray-300'
+                        ? 'border-blue-600 bg-blue-600 dark:border-blue-500 dark:bg-blue-500' 
+                        : 'border-gray-300 dark:border-gray-600'
                     }`}>
                       {selectedTicketType === type && (
-                        <div className="h-full w-full flex items-center justify-center">
-                          <div className="h-2 w-2 rounded-full bg-white"></div>
-                        </div>
+                        <div className="h-2 w-2 rounded-full bg-white"></div>
                       )}
                     </div>
                   </div>
-                  <p className="text-xl font-bold mt-2">₹{details.price}</p>
-                  {type === 'vip' && <p className="text-sm text-gray-600 mt-1">Priority seating + Welcome drink</p>}
-                  {type === 'premium' && <p className="text-sm text-gray-600 mt-1">Front row + Welcome drink + Meet & Greet</p>}
+                  <p className="text-xl font-bold mt-2 dark:text-gray-100">₹{details.price.toLocaleString()}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{details.description}</p>
                 </div>
               ))}
             </div>
@@ -209,48 +232,65 @@ export default function BookTicket({ params }) {
 
           {/* Quantity Selector */}
           <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">Quantity</h2>
+            <h2 className="text-xl font-semibold mb-4 dark:text-gray-100 flex items-center">
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+              </svg>
+              Quantity
+            </h2>
             <div className="flex items-center">
               <button 
                 onClick={() => quantity > 1 && setQuantity(quantity - 1)}
-                className="h-10 w-10 rounded-l-md bg-gray-100 flex items-center justify-center border border-gray-300"
+                className="h-10 w-10 rounded-l-md bg-gray-100 dark:bg-gray-700 flex items-center justify-center border border-gray-300 dark:border-gray-600 transition-colors"
                 disabled={quantity <= 1}
               >
                 <span className="text-xl">-</span>
               </button>
-              <div className="h-10 w-16 border-t border-b border-gray-300 flex items-center justify-center">
+              <div className="h-10 w-16 border-t border-b border-gray-300 dark:border-gray-600 flex items-center justify-center transition-colors">
                 {quantity}
               </div>
               <button 
                 onClick={() => quantity < 10 && setQuantity(quantity + 1)}
-                className="h-10 w-10 rounded-r-md bg-gray-100 flex items-center justify-center border border-gray-300"
+                className="h-10 w-10 rounded-r-md bg-gray-100 dark:bg-gray-700 flex items-center justify-center border border-gray-300 dark:border-gray-600 transition-colors"
                 disabled={quantity >= 10}
               >
                 <span className="text-xl">+</span>
               </button>
-              <p className="ml-4 text-gray-600">Maximum 10 tickets per transaction</p>
+              <div className="ml-4 flex items-center text-gray-600 dark:text-gray-400">
+                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Maximum 10 tickets per transaction
+              </div>
             </div>
           </div>
 
           {/* Order Summary */}
-          <div className="bg-gray-50 p-4 rounded-lg mb-6">
-            <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
-            <div className="flex justify-between mb-2">
-              <span>{ticketTypes[selectedTicketType].name} Ticket x {quantity}</span>
-              <span>₹{ticketTypes[selectedTicketType].price * quantity}</span>
-            </div>
-            <div className="flex justify-between mb-2">
-              <span>Platform Fee</span>
-              <span>₹49</span>
-            </div>
-            <div className="flex justify-between mb-2">
-              <span>GST (18%)</span>
-              <span>₹{Math.round((ticketTypes[selectedTicketType].price * quantity + 49) * 0.18)}</span>
-            </div>
-            <div className="border-t border-gray-300 my-2"></div>
-            <div className="flex justify-between font-bold text-lg">
-              <span>Total</span>
-              <span>₹{calculateTotal() + 49 + Math.round((ticketTypes[selectedTicketType].price * quantity + 49) * 0.18)}</span>
+          <div className="bg-gray-50 dark:bg-gray-700/50 p-5 rounded-lg mb-6 transition-colors">
+            <h2 className="text-xl font-semibold mb-4 dark:text-gray-100 flex items-center">
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+              </svg>
+              Order Summary
+            </h2>
+            <div className="space-y-3">
+              <div className="flex justify-between mb-1">
+                <span className="dark:text-gray-300">{ticketTypes[selectedTicketType].name} Ticket × {quantity}</span>
+                <span className="font-medium dark:text-gray-200">₹{(ticketTypes[selectedTicketType].price * quantity).toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between mb-1">
+                <span className="dark:text-gray-300">Platform Fee</span>
+                <span className="font-medium dark:text-gray-200">₹49</span>
+              </div>
+              <div className="flex justify-between mb-1">
+                <span className="dark:text-gray-300">GST (18%)</span>
+                <span className="font-medium dark:text-gray-200">₹{Math.round((ticketTypes[selectedTicketType].price * quantity + 49) * 0.18).toLocaleString()}</span>
+              </div>
+              <div className="border-t border-gray-300 dark:border-gray-600 my-3"></div>
+              <div className="flex justify-between font-bold text-lg dark:text-white">
+                <span>Total</span>
+                <span>₹{calculateFinalAmount().toLocaleString()}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -260,26 +300,38 @@ export default function BookTicket({ params }) {
       <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
         <button 
           onClick={() => router.back()}
-          className="w-full md:w-auto px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+          className="w-full md:w-auto px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center justify-center"
         >
+          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          </svg>
           Go Back
         </button>
         <button 
           onClick={handlePayment} 
           disabled={loading || !orderId}
-          className="w-full md:w-auto bg-blue-600 text-white px-8 py-3 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center disabled:bg-blue-400"
+          className="w-full md:w-auto bg-blue-600 dark:bg-blue-500 text-white px-8 py-3 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors flex items-center justify-center disabled:bg-blue-400 dark:disabled:bg-blue-400 disabled:cursor-not-allowed shadow-md"
         >
           {loading ? (
             <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white mr-2"></div>
-          ) : null}
-          Pay ₹{calculateTotal() + 49 + Math.round((ticketTypes[selectedTicketType].price * quantity + 49) * 0.18)}
+          ) : (
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+          )}
+          Pay ₹{calculateFinalAmount().toLocaleString()}
         </button>
       </div>
 
       {/* Additional Information */}
-      <div className="mt-8 text-sm text-gray-600">
-        <h3 className="font-semibold mb-2">Important Information:</h3>
-        <ul className="list-disc pl-5 space-y-1">
+      <div className="mt-8 text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+        <h3 className="font-semibold mb-3 dark:text-gray-300 flex items-center">
+          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          Important Information:
+        </h3>
+        <ul className="list-disc pl-5 space-y-2">
           <li>Tickets are non-refundable once purchased</li>
           <li>Please arrive 30 minutes before the event starts</li>
           <li>Ticket confirmation will be sent to your email</li>

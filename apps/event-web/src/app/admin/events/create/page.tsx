@@ -19,7 +19,7 @@ export default function CreateEvent() {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-6 w-full">
       <h2 className="text-xl font-bold">Create Event</h2>
       <form onSubmit={handleSubmit} className="mt-4">
         <input className="border p-2 w-full" type="text" placeholder="Event Name" value={name} onChange={(e) => setName(e.target.value)} />

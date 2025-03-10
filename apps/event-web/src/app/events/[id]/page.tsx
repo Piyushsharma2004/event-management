@@ -3,13 +3,23 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Calendar, Clock, MapPin, Users, Tag, Share2, Heart, ChevronLeft, Info, Ticket } from "lucide-react";
+import { Calendar, Clock, MapPin, Users, Tag, Share2, Heart, ChevronLeft, Info, Ticket, Moon, Sun } from "lucide-react";
 
 export default function EventDetails({ params }) {
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [liked, setLiked] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    // Apply dark mode class to the document element
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
 
   useEffect(() => {
     fetch(`/api/events/${params.id}`)
@@ -27,21 +37,21 @@ export default function EventDetails({ params }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-16 h-16 border-4 border-gray-200 border-t-indigo-600 rounded-full animate-spin"></div>
+      <div className="min-h-screen flex items-center justify-center dark:bg-gray-900">
+        <div className="w-16 h-16 border-4 border-gray-200 border-t-indigo-600 dark:border-gray-700 dark:border-t-indigo-400 rounded-full animate-spin"></div>
       </div>
     );
   }
 
   if (!event) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center dark:bg-gray-900 dark:text-white">
         <div className="text-center">
-          <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-            <Info className="w-8 h-8 text-gray-400" />
+          <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+            <Info className="w-8 h-8 text-gray-400 dark:text-gray-500" />
           </div>
           <h3 className="text-lg font-medium">Event not found</h3>
-          <p className="text-gray-500 mt-1">This event may have been removed or is no longer available</p>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">This event may have been removed or is no longer available</p>
           <Link href="/events">
             <button className="mt-6 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-500 transition">
               Back to Events
@@ -76,22 +86,19 @@ export default function EventDetails({ params }) {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen pb-16">
-      {/* Back Button */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-6xl mx-auto px-6 py-4">
-          <Link href="/events">
-            <button className="flex items-center text-gray-600 hover:text-indigo-600 transition">
+    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen pb-16 transition-colors duration-200">
+      {/* Header with Back Button and Dark Mode Toggle */}
+     
+      
+      {/* Hero Section */}
+      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-800 dark:to-purple-900 py-12 lg:py-20">
+        <div className="max-w-6xl mx-auto px-6">
+        <Link href="/events">
+            <button className="flex items-center text-white transition -mt-14 mb-10">
               <ChevronLeft className="w-5 h-5 mr-1" />
               Back to Events
             </button>
           </Link>
-        </div>
-      </div>
-      
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 py-12 lg:py-20">
-        <div className="max-w-6xl mx-auto px-6">
           <div className="flex flex-col lg:flex-row gap-8">
             <div className="lg:w-2/3 text-white">
               <div className="inline-flex items-center px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-sm mb-4">
@@ -136,7 +143,7 @@ export default function EventDetails({ params }) {
               
               <div className="mt-8 flex flex-wrap gap-4">
                 <Link href={`/events/${eventWithDefaults.id}/book`}>
-                  <button className="px-6 py-3 bg-white text-indigo-600 font-semibold rounded-lg shadow-md hover:bg-indigo-50 transition">
+                  <button className="px-6 py-3 bg-white text-indigo-600 dark:bg-indigo-900 dark:text-white font-semibold rounded-lg shadow-md hover:bg-indigo-50 dark:hover:bg-indigo-800 transition">
                     {eventWithDefaults.price === 0 ? "Register Now" : "Book Ticket"}
                   </button>
                 </Link>
@@ -158,7 +165,7 @@ export default function EventDetails({ params }) {
             
             <div className="lg:w-1/3 bg-white/10 backdrop-blur-sm rounded-xl p-6 text-white self-start">
               <div className="flex items-center mb-4">
-                <div className="w-10 h-10 bg-indigo-200 rounded-full flex items-center justify-center text-indigo-600 font-bold mr-3">
+                <div className="w-10 h-10 bg-indigo-200 dark:bg-indigo-700 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-200 font-bold mr-3">
                   {eventWithDefaults.organizer.name.charAt(0)}
                 </div>
                 <div>
@@ -193,21 +200,21 @@ export default function EventDetails({ params }) {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Main Content */}
           <div className="lg:w-2/3">
-            <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
-              <h2 className="text-xl font-bold mb-4">About This Event</h2>
-              <p className="text-gray-700 whitespace-pre-line">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-8 transition-colors">
+              <h2 className="text-xl font-bold mb-4 dark:text-white">About This Event</h2>
+              <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">
                 {eventWithDefaults.description}
               </p>
               
               <div className="mt-8">
-                <h3 className="text-lg font-semibold mb-4">Event Highlights</h3>
+                <h3 className="text-lg font-semibold mb-4 dark:text-white">Event Highlights</h3>
                 <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {eventWithDefaults.highlights.map((highlight, index) => (
                     <li key={index} className="flex items-start">
-                      <div className="mt-1 mr-3 flex-shrink-0 w-5 h-5 bg-indigo-100 rounded-full flex items-center justify-center">
-                        <div className="w-2 h-2 bg-indigo-600 rounded-full"></div>
+                      <div className="mt-1.5 mr-3 flex-shrink-0 w-5 h-5 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center">
+                        <div className="w-2 h-2 bg-indigo-600 dark:bg-indigo-400 rounded-full"></div>
                       </div>
-                      <span className="text-gray-700">{highlight}</span>
+                      <span className="text-gray-700 dark:text-gray-300">{highlight}</span>
                     </li>
                   ))}
                 </ul>
@@ -215,17 +222,17 @@ export default function EventDetails({ params }) {
             </div>
             
             {eventWithDefaults.speakers.length > 0 && (
-              <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
-                <h2 className="text-xl font-bold mb-4">Speakers</h2>
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-8 transition-colors">
+                <h2 className="text-xl font-bold mb-4 dark:text-white">Speakers</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {eventWithDefaults.speakers.map((speaker, index) => (
                     <div key={index} className="flex items-center">
-                      <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center text-xl font-bold text-gray-400 mr-4">
+                      <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center text-xl font-bold text-gray-400 dark:text-gray-500 mr-4">
                         {speaker.name.charAt(0)}
                       </div>
                       <div>
-                        <h3 className="font-semibold">{speaker.name}</h3>
-                        <p className="text-gray-600">{speaker.role}</p>
+                        <h3 className="font-semibold dark:text-white">{speaker.name}</h3>
+                        <p className="text-gray-600 dark:text-gray-400">{speaker.role}</p>
                       </div>
                     </div>
                   ))}
@@ -233,83 +240,83 @@ export default function EventDetails({ params }) {
               </div>
             )}
             
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="text-xl font-bold mb-4">Location</h2>
-              <div className="aspect-video bg-gray-200 rounded-lg flex items-center justify-center mb-4">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 transition-colors">
+              <h2 className="text-xl font-bold mb-4 dark:text-white">Location</h2>
+              <div className="aspect-video bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center mb-4">
                 {/* Map would go here */}
-                <MapPin className="w-8 h-8 text-gray-400" />
+                <MapPin className="w-8 h-8 text-gray-400 dark:text-gray-500" />
               </div>
-              <h3 className="font-semibold">{eventWithDefaults.location}</h3>
-              <p className="text-gray-600">University Campus, Building 3</p>
+              <h3 className="font-semibold dark:text-white">{eventWithDefaults.location}</h3>
+              <p className="text-gray-600 dark:text-gray-400">University Campus, Building 3</p>
             </div>
           </div>
           
           {/* Sidebar */}
           <div className="lg:w-1/3">
-            <div className="bg-white rounded-xl shadow-sm p-6 sticky top-6">
-              <h2 className="text-xl font-bold mb-4">Registration</h2>
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 sticky top-6 transition-colors">
+              <h2 className="text-xl font-bold mb-4 dark:text-white">Registration</h2>
               
-              <div className="flex items-center justify-between py-3 border-b">
-                <span className="text-gray-600">Price</span>
-                <span className="font-semibold text-lg">
+              <div className="flex items-center justify-between py-3 border-b dark:border-gray-700">
+                <span className="text-gray-600 dark:text-gray-400">Price</span>
+                <span className="font-semibold text-lg dark:text-white">
                   {eventWithDefaults.price === 0 ? "Free" : `₹${eventWithDefaults.price}`}
                 </span>
               </div>
               
               <div className="py-4">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-gray-600">Available spots</span>
-                  <span>{eventWithDefaults.totalSpots - eventWithDefaults.registeredCount}/{eventWithDefaults.totalSpots}</span>
+                  <span className="text-gray-600 dark:text-gray-400">Available spots</span>
+                  <span className="dark:text-white">{eventWithDefaults.totalSpots - eventWithDefaults.registeredCount}/{eventWithDefaults.totalSpots}</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                   <div 
-                    className="bg-indigo-600 h-2 rounded-full" 
+                    className="bg-indigo-600 dark:bg-indigo-500 h-2 rounded-full" 
                     style={{ width: `${(eventWithDefaults.registeredCount / eventWithDefaults.totalSpots) * 100}%` }}
                   ></div>
                 </div>
               </div>
               
-              <div className="bg-indigo-50 rounded-lg p-4 mb-6">
+              <div className="bg-indigo-50 dark:bg-indigo-900/40 rounded-lg p-4 mb-6">
                 <div className="flex items-start">
-                  <Info className="w-5 h-5 text-indigo-600 mt-0.5 mr-3" />
+                  <Info className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mt-0.5 mr-3" />
                   <div>
-                    <p className="text-indigo-900 font-medium">Registration ends soon</p>
-                    <p className="text-indigo-700 text-sm">Register before spots fill up!</p>
+                    <p className="text-indigo-900 dark:text-indigo-300 font-medium">Registration ends soon</p>
+                    <p className="text-indigo-700 dark:text-indigo-400 text-sm">Register before spots fill up!</p>
                   </div>
                 </div>
               </div>
               
               <Link href={`/events/${eventWithDefaults.id}/book`}>
-                <button className="w-full py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-500 transition">
+                <button className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 dark:bg-indigo-700 dark:hover:bg-indigo-600 text-white font-semibold rounded-lg transition">
                   {eventWithDefaults.price === 0 ? "Register Now" : "Book Ticket"}
                 </button>
               </Link>
               
               <button 
-                className={`mt-3 w-full py-3 border ${liked ? 'bg-indigo-50 border-indigo-600 text-indigo-600' : 'border-gray-300 text-gray-600'} rounded-lg hover:bg-gray-50 transition flex items-center justify-center`}
+                className={`mt-3 w-full py-3 border ${liked ? 'bg-indigo-50 dark:bg-indigo-900/30 border-indigo-600 dark:border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400'} rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition flex items-center justify-center`}
                 onClick={() => setLiked(!liked)}
               >
-                <Heart className={`w-5 h-5 mr-2 ${liked ? 'fill-indigo-600 text-indigo-600' : ''}`} />
+                <Heart className={`w-5 h-5 mr-2 ${liked ? 'fill-indigo-600 dark:fill-indigo-500 text-indigo-600 dark:text-indigo-500' : ''}`} />
                 {liked ? 'Saved to Wishlist' : 'Add to Wishlist'}
               </button>
               
-              <div className="mt-6 pt-6 border-t">
-                <h3 className="font-semibold mb-3">Share this event</h3>
+              <div className="mt-6 pt-6 border-t dark:border-gray-700">
+                <h3 className="font-semibold mb-3 dark:text-white">Share this event</h3>
                 <div className="flex gap-3">
-                  <button className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition">
+                  <button className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-600 transition">
                     {/* Facebook icon would go here */}
-                    <span className="font-bold text-blue-600">f</span>
+                    <span className="font-bold text-blue-600 dark:text-blue-400">f</span>
                   </button>
-                  <button className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition">
+                  <button className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-600 transition">
                     {/* Twitter/X icon would go here */}
-                    <span className="font-bold">𝕏</span>
+                    <span className="font-bold dark:text-white">𝕏</span>
                   </button>
-                  <button className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition">
+                  <button className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-600 transition">
                     {/* LinkedIn icon would go here */}
-                    <span className="font-bold text-blue-700">in</span>
+                    <span className="font-bold text-blue-700 dark:text-blue-400">in</span>
                   </button>
-                  <button className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition">
-                    <Share2 className="w-5 h-5" />
+                  <button className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-600 transition">
+                    <Share2 className="w-5 h-5 dark:text-white" />
                   </button>
                 </div>
               </div>
@@ -321,33 +328,33 @@ export default function EventDetails({ params }) {
       {/* Related Events */}
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">Similar Events</h2>
+          <h2 className="text-2xl font-bold dark:text-white">Similar Events</h2>
           <Link href="/events">
-            <span className="text-indigo-600 hover:underline">View all</span>
+            <span className="text-indigo-600 dark:text-indigo-400 hover:underline">View all</span>
           </Link>
         </div>
         
         <div className="grid md:grid-cols-3 gap-6">
           {[1, 2, 3].map((item) => (
-            <div key={item} className="bg-white rounded-xl shadow-sm hover:shadow-md transition overflow-hidden">
-              <div className="h-40 bg-gray-200 relative">
+            <div key={item} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition overflow-hidden">
+              <div className="h-40 bg-gray-200 dark:bg-gray-700 relative">
                 {/* Event image would go here */}
-                <div className="absolute top-3 left-3 bg-indigo-600 text-white text-xs font-medium px-2 py-1 rounded-full">
+                <div className="absolute top-3 left-3 bg-indigo-600 dark:bg-indigo-500 text-white text-xs font-medium px-2 py-1 rounded-full">
                   {eventWithDefaults.category}
                 </div>
               </div>
               <div className="p-5">
-                <div className="flex items-center text-gray-500 text-sm mb-2">
+                <div className="flex items-center text-gray-500 dark:text-gray-400 text-sm mb-2">
                   <Calendar className="w-4 h-4 mr-1" />
                   <span>Mar {15 + item}, 2025</span>
                 </div>
-                <h3 className="text-lg font-semibold mb-2">Similar Event {item}</h3>
-                <div className="flex items-center gap-1 text-gray-600 mb-4">
+                <h3 className="text-lg font-semibold mb-2 dark:text-white">Similar Event {item}</h3>
+                <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400 mb-4">
                   <MapPin className="w-4 h-4" />
                   <span>University Campus</span>
                 </div>
                 <Link href={`/events/${101 + item}`}>
-                  <button className="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-500 transition">
+                  <button className="w-full bg-indigo-600 dark:bg-indigo-700 text-white px-4 py-2 rounded-lg hover:bg-indigo-500 dark:hover:bg-indigo-600 transition">
                     View Details
                   </button>
                 </Link>
