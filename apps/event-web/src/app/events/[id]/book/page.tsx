@@ -51,55 +51,59 @@ export default function BookTicket({ params }: { params: Params }) {
   };
 
   useEffect(() => {
-    // Fetch event details
+    if (!params?.id) return; // ✅ Prevents API calls if params.id is undefined
+
     async function fetchEventDetails() {
+      setLoading(true);
       try {
         const res = await fetch(`/api/events/${params.id}`);
+        if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+
         const data = await res.json();
         setEventDetails(data);
-        setLoading(false);
       } catch (error) {
         console.error("Failed to fetch event details:", error);
+      } finally {
         setLoading(false);
       }
     }
 
     fetchEventDetails();
-  }, [params.id]);
+  }, [params?.id]); // ✅ Ensures we only run when params.id is available
 
   useEffect(() => {
-    // Create order when ticket type or quantity changes
+    if (!eventDetails || !params?.id || !selectedTicketType || quantity <= 0) return;
+
     async function createOrder() {
-      if (!eventDetails) return;
-      
       setLoading(true);
       try {
+        const totalAmount = calculateTotal(); // ✅ Make sure this function is defined and safe
+        if (!totalAmount) throw new Error("Total amount calculation failed");
+
         const res = await fetch("/api/payment", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             eventId: params.id,
-            amount: calculateTotal(),
+            amount: totalAmount,
             ticketType: selectedTicketType,
-            quantity: quantity
+            quantity: quantity,
           }),
         });
-        
+
+        if (!res.ok) throw new Error(`Payment API error: ${res.status}`);
         const data = await res.json();
+
         setOrderId(data.orderId);
-        setLoading(false);
       } catch (error) {
         console.error("Failed to create order:", error);
+      } finally {
         setLoading(false);
       }
     }
-    
-    if (eventDetails) {
-      createOrder();
-    }
-  }, [params.id, selectedTicketType, quantity, eventDetails]);
+
+    createOrder();
+  }, [eventDetails, params?.id, selectedTicketType, quantity]); // ✅ Ensures correct dependencies
 
   const handlePayment = async () => {
     if (!orderId) return alert("Failed to create order. Please try again.");
